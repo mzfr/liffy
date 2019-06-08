@@ -1,3 +1,7 @@
+[![GitSpo Mentions](https://gitspo.com/badges/mentions/mzfr/liffy?style=flat-square)](https://gitspo.com/mentions/mzfr/liffy)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/mzfr/liffy/graphs/commit-activity)
+
 <h1 align="center">
   <br>
   <a href="https://github.com/mzfr/liffy"><img src="Images/Liffy-logo.png" alt="liffy"></a>
@@ -51,7 +55,8 @@ In any case feel free to open an issue
 
 All the exploitation techniques are taken from [liffy](https://github.com/hvqzao/liffy)
 
-## Say Thanks
+Logo for this project is taken from [renderforest](https://www.renderforest.com/)
+
+## Say Thanks [![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/mzfr)
 
 If you'd like to :tada: [say thanks](https://saythanks.io/to/mzfr) :smile:
-
