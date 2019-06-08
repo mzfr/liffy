@@ -1,4 +1,8 @@
-<h1 align="center">Liffy v2.0</h1>
+<h1 align="center">
+  <br>
+  <a href="https://github.com/mzfr/liffy"><img src="Images/Liffy-logo.png" alt="liffy"></a>
+  <br>
+</h1>
 
 <h4 align="center">LFI Exploitation tool</h4>
 
