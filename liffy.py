@@ -8,7 +8,7 @@ import urllib.parse
 
 from pyfiglet import figlet_format
 
-from core import Expect, Filter, Input, authlog, data, proc, sshlog
+from core import Expect, Filter, Input, accesslog, data, proc, sshlog
 from core.utils import colors
 
 
@@ -98,7 +98,7 @@ def main():
             l = '/var/log/apache2/access.log'
         else:
             l = args.location
-        a = authlog(url, l, nostager, relative, cookies)
+        a = accesslog(url, l, nostager, relative, cookies)
         a.execute_logs()
     elif args.ssh:
         print(colors("[~] Testing for SSH log poisoning ", 93))
