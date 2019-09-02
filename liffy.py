@@ -65,11 +65,11 @@ def main():
 
     print(colors("[~] Checking Target: {0}".format(parsed.netloc), 93))
 
-    if ping(parsed.netloc):
-        print(colors("[+] Target looks alive ", 92))
-    else:
-        print(colors("[!] Target irresponsive ", 91))
-        sys.exit(1)
+    # if ping(parsed.netloc):
+    #     print(colors("[+] Target looks alive ", 92))
+    # else:
+    #     print(colors("[!] Target irresponsive ", 91))
+    #     sys.exit(1)
 
     if not parsed.query:
         print(colors("[!] No GET parameter Provided ", 91))
