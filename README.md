@@ -10,7 +10,7 @@
 
 <h4 align="center">LFI Exploitation tool</h4>
 
-![liffy in action](Images/liffy.jpg)
+![liffy in action](Images/liffy.png)
 
 <p align="center">
   <a href="https://github.com/mzfr/liffy/wiki">liffy Wiki</a> •
