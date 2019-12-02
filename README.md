@@ -57,6 +57,8 @@ All the exploitation techniques are taken from [liffy](https://github.com/hvqzao
 
 Logo for this project is taken from [renderforest](https://www.renderforest.com/)
 
-## Say Thanks [![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/mzfr)
+## Support
 
-If you'd like to :tada: [say thanks](https://saythanks.io/to/mzfr) :smile:
+If you'd like you can buy me some coffee:
+
+<a href="https://www.buymeacoffee.com/mzfr" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
