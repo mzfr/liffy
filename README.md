@@ -2,6 +2,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/mzfr/liffy/graphs/commit-activity)
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/liffy.svg)](https://repology.org/project/liffy/versions)
+
 <h1 align="center">
   <br>
   <a href="https://github.com/mzfr/liffy"><img src="Images/Liffy-logo.png" alt="liffy"></a>
