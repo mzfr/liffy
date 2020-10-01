@@ -23,7 +23,7 @@
 
 A little python tool to perform Local file inclusion.
 
-Liffy v2.0 is the improved version of [liffy](https://github.com/hvqzao/liffy) which was originally created by [rotlogix/liffy](https://github.com/rotlogix/liffy). The latter is no longer available and the former hasn't seen any development for a long time.
+Liffy v2.0 is improved version of [liffy](https://github.com/hvqzao/liffy) which was originally created by [rotlogix/liffy](https://github.com/rotlogix/liffy). Latter, it is no longer available and for a long time the former hasn't seen any development.
 
 
 ## Main feature
