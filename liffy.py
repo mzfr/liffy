@@ -8,7 +8,7 @@ import urllib.parse
 
 from pyfiglet import figlet_format
 
-from core import Expect, Filter, Input, accesslog, data, proc, sshlog
+from core import Expect, Filter, Input, accesslog, data, proc, sshlog, Dirtra
 from core.utils import colors
 
 
@@ -53,6 +53,7 @@ def main():
     parser.add_argument("--ssh", help="SSH auth log poisoning", action="store_true")
     parser.add_argument("-l", "--location", help="path to target file (access log, auth log, etc.)")
     parser.add_argument("--cookies", help="session cookies for authentication")
+    parser.add_argument('-dt', "--directorytraverse", help="Test for Directory Traversal", action="store_true")
 
     args = parser.parse_args()
 
@@ -113,6 +114,11 @@ def main():
         print(colors("[~] Testing with expect://", 93))
         f = Filter.Filter(url, cookies)
         f.execute_filter()
+    elif args.directorytraverse:
+        print(colors("[~] Testing for directory traversal", 93))
+        filename = input(colors("[*] Please give a payload file for testing Directory Traversl: ", 91))
+        dt = Dirtra.dirtra(url, filename, True)
+        dt.execute_dirtra()
     else:
         print(colors("[!] Please select atleast one technique to test", 91))
         sys.exit(0)
