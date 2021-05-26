@@ -8,7 +8,7 @@ import urllib.parse
 
 from pyfiglet import figlet_format
 
-from core import Expect, Filter, Input, accesslog, data, proc, sshlog, Dirtra
+from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal
 from core.utils import colors
 
 
@@ -117,8 +117,8 @@ def main():
     elif args.directorytraverse:
         print(colors("[~] Testing for directory traversal", 93))
         filename = input(colors("[*] Please give a payload file for testing Directory Traversl: ", 91))
-        dt = Dirtra.dirtra(url, filename, True)
-        dt.execute_dirtra()
+        dt = DirTraversal.dirTraversal(url, filename, True)
+        dt.execute_dirTraversal()
     else:
         print(colors("[!] Please select atleast one technique to test", 91))
         sys.exit(0)
