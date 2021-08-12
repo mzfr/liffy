@@ -40,7 +40,7 @@ class Data:
             print(colors("[~] Starting Web Server ... ", 93))
 
             try:
-                p = subprocess.Popen(["python {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
                 p.communicate()
             except OSError as e:
                 print(colors("[!]Process Error",91))

