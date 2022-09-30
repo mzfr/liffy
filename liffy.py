@@ -21,7 +21,7 @@ def ping(hostname):
     Returns:
         bool -- Tell if host is up or not
     """
-    resp = os.system("ping -c 1 -W2 "+hostname+" > /dev/null 2>&1")
+    resp = os.system("ping -c 1 -W2 " + hostname + " > /dev/null 2>&1")
 
     if resp == 0:
         return True
@@ -30,7 +30,7 @@ def ping(hostname):
 
 
 def signal_handler(signal, frame):
-    print(colors('\n\nYou pressed Ctrl+C!', 91))
+    print(colors("\n\nYou pressed Ctrl+C!", 91))
     sys.exit(0)
 
 
@@ -42,18 +42,47 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("url", help="URL to test for LFI")
-    parser.add_argument("-d", "--data", help="Use data:// technique", action="store_true")
-    parser.add_argument("-i", "--input", help="Use input:// technique", action="store_true")
-    parser.add_argument("-e", "--expect", help="Use expect:// technique", action="store_true")
-    parser.add_argument("-f", "--filter", help="Use filter:// technique", action="store_true")
-    parser.add_argument("-p", "--proc", help="Use /proc/self/environ technique", action="store_true")
-    parser.add_argument("-a", "--access", help="Apache access logs technique", action="store_true")
-    parser.add_argument("-ns", "--nostager", help="execute payload directly, do not use stager", action="store_true")
-    parser.add_argument("-r", "--relative", help="use path traversal sequences for attack", action="store_true")
+    parser.add_argument(
+        "-d", "--data", help="Use data:// technique", action="store_true"
+    )
+    parser.add_argument(
+        "-i", "--input", help="Use input:// technique", action="store_true"
+    )
+    parser.add_argument(
+        "-e", "--expect", help="Use expect:// technique", action="store_true"
+    )
+    parser.add_argument(
+        "-f", "--filter", help="Use filter:// technique", action="store_true"
+    )
+    parser.add_argument(
+        "-p", "--proc", help="Use /proc/self/environ technique", action="store_true"
+    )
+    parser.add_argument(
+        "-a", "--access", help="Apache access logs technique", action="store_true"
+    )
+    parser.add_argument(
+        "-ns",
+        "--nostager",
+        help="execute payload directly, do not use stager",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-r",
+        "--relative",
+        help="use path traversal sequences for attack",
+        action="store_true",
+    )
     parser.add_argument("--ssh", help="SSH auth log poisoning", action="store_true")
-    parser.add_argument("-l", "--location", help="path to target file (access log, auth log, etc.)")
+    parser.add_argument(
+        "-l", "--location", help="path to target file (access log, auth log, etc.)"
+    )
     parser.add_argument("--cookies", help="session cookies for authentication")
-    parser.add_argument('-dt', "--directorytraverse", help="Test for Directory Traversal", action="store_true")
+    parser.add_argument(
+        "-dt",
+        "--directorytraverse",
+        help="Test for Directory Traversal",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -96,16 +125,16 @@ def main():
         print(colors("[~] Testing for Apache access.log poisoning", 93))
         if not args.location:
             print(colors("[~] Log Location Not Provided! Using Default", 93))
-            l = '/var/log/apache2/access.log'
+            l = "/var/log/apache2/access.log"
         else:
             l = args.location
-        a = accesslog(url, l, nostager, relative, cookies)
+        a = accesslog.Logs(url, l, nostager, relative, cookies)
         a.execute_logs()
     elif args.ssh:
         print(colors("[~] Testing for SSH log poisoning ", 93))
         if not args.location:
             print(colors("[~] Log Location Not Provided! Using Default", 93))
-            l = '/var/log/auth.log'
+            l = "/var/log/auth.log"
         else:
             l = args.location
         a = sshlog.SSHLogs(url, l, relative, cookies)
@@ -116,7 +145,11 @@ def main():
         f.execute_filter()
     elif args.directorytraverse:
         print(colors("[~] Testing for directory traversal", 93))
-        filename = input(colors("[*] Please give a payload file for testing Directory Traversl: ", 91))
+        filename = input(
+            colors(
+                "[*] Please give a payload file for testing Directory Traversl: ", 91
+            )
+        )
         dt = DirTraversal.dirTraversal(url, filename, True)
         dt.execute_dirTraversal()
     else:
@@ -126,6 +159,6 @@ def main():
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
-    print(colors(figlet_format('Liffy v2.0', font='big'), 92))
+    print(colors(figlet_format("Liffy v2.0", font="big"), 92))
     print("\n")
     main()
