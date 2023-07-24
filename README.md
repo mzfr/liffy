@@ -1,7 +1,7 @@
 [![GitSpo Mentions](https://gitspo.com/badges/mentions/mzfr/liffy?style=flat-square)](https://gitspo.com/mentions/mzfr/liffy)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/mzfr/liffy/graphs/commit-activity)
-[![Rawsec's CyberSecurity Inventory](https://inventory.rawsec.ml/img/badges/Rawsec-inventoried-FF5050_flat.svg)](https://inventory.rawsec.ml/tools.html#Liffy)
+[![Rawsec's CyberSecurity Inventory](https://inventory.raw.pm/img/badges/Rawsec-inventoried-FF5050_flat.svg)](https://inventory.raw.pm/tools.html#Liffy)
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/liffy.svg)](https://repology.org/project/liffy/versions)
 
