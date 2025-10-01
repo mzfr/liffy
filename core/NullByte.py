@@ -1,5 +1,6 @@
 from .Detection import Detection
-from .utils import attack, colors, cook, parse_headers, parse_post_data
+from .utils import attack, cook, parse_headers, parse_post_data
+from .rich_output import colors, print_error, print_success, print_info
 from .Encoding import EncodingBypass
 
 
@@ -11,7 +12,7 @@ class NullByte:
         self.use_encoding = getattr(args, "encoding", False)
         self.method = getattr(args, "method", "GET")
         self.custom_headers = parse_headers(getattr(args, "headers", None))
-        self.post_data = parse_post_data(getattr(args, "data", None))
+        self.post_data = parse_post_data(getattr(args, "post_data", None))
 
     def attack(self, payload):
         payload = f"{payload}%00"

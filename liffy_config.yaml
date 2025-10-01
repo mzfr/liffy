@@ -1,0 +1,6 @@
+detection_timeout: 30
+disable_banner: false
+disable_colors: false
+max_threads: 5
+rate_limit_delay: 0.1
+user_agent_rotation: true

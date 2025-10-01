@@ -7,10 +7,16 @@ import sys
 import concurrent.futures
 import urllib.parse
 
-from pyfiglet import figlet_format
-
 from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal
-from core.utils import colors
+from core.rich_output import (
+    print_banner,
+    configure_output,
+    load_config,
+    create_default_config,
+    rich_print,
+    print_error,
+    print_success,
+)
 from tests.test_liffy import (
     test_data,
     test_input,
@@ -43,7 +49,7 @@ def ping(hostname):
 
 
 def signal_handler(signal, frame):
-    print(colors("\n\nYou pressed Ctrl+C!", 91))
+    print_error("\n\nYou pressed Ctrl+C!")
     sys.exit(0)
 
 
@@ -53,8 +59,9 @@ def main():
         # TODO: Add usage
         sys.exit(0)
 
+    # Parse args first to check for banner/color settings
     parser = argparse.ArgumentParser()
-    parser.add_argument("url", help="URL to test for LFI")
+    parser.add_argument("url", help="URL to test for LFI", nargs="?")
     parser.add_argument(
         "-d", "--data", help="Use data:// technique", action="store_true"
     )
@@ -126,19 +133,57 @@ def main():
         choices=["GET", "POST"],
     )
     parser.add_argument(
-        "--data",
+        "--post-data",
         help="POST data (format: key=value&key2=value2)",
     )
     parser.add_argument(
         "--headers",
         help="Custom headers (format: Header1:Value1,Header2:Value2)",
     )
+    parser.add_argument(
+        "--no-color",
+        help="Disable colored output",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-banner",
+        help="Disable banner display",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--config",
+        help="Create default YAML configuration file",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
+    # Handle config creation
+    if args.config:
+        if create_default_config():
+            print_success(
+                "Default configuration file 'liffy_config.yaml' created successfully!"
+            )
+        else:
+            print_error(
+                "Configuration file already exists! Delete 'liffy_config.yaml' first or edit it directly."
+            )
+        sys.exit(0)
+
+    # Load configuration and apply CLI overrides
+    load_config()
+    configure_output(disable_colors=args.no_color, disable_banner=args.no_banner)
+
+    # Show banner after configuration is loaded
+    print_banner()
+
+    if not args.url:
+        print_error("[!] URL is required")
+        sys.exit(1)
+
     parsed = urllib.parse.urlsplit(args.url)
     if not parsed.query:
-        print(colors("[!] No GET parameter Provided ", 91))
+        print_error("[!] No GET parameter Provided")
 
     pre_run_tasks = {
         ping: "Checking Target: {0}".format(parsed.netloc),
@@ -154,10 +199,10 @@ def main():
             try:
                 result = future.result()
                 if not result:
-                    print(colors("[!] Target irresponsive ", 91))
+                    print_error("[!] Target irresponsive")
                     sys.exit(1)
                 else:
-                    print(colors("[+] Target looks alive ", 92))
+                    print_success("[+] Target looks alive")
             except Exception as exc:
                 print(f"{pre_run_tasks[task]} generated an exception: {exc}")
 
@@ -184,7 +229,7 @@ def main():
         tasks.append(test_zip_wrapper)
 
     if not tasks:
-        print(colors("[!] Please select at least one technique to test", 91))
+        print_error("[!] Please select at least one technique to test")
         sys.exit(0)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
@@ -194,6 +239,4 @@ def main():
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
-    print(colors(figlet_format("Liffy v2.0", font="big"), 92))
-    print("\n")
     main()
