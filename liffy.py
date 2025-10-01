@@ -127,6 +127,11 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "--waf-bypass",
+        help="Use WAF evasion techniques",
+        action="store_true",
+    )
+    parser.add_argument(
         "--method",
         help="HTTP method to use (GET/POST)",
         default="GET",

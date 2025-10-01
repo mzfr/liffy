@@ -278,9 +278,7 @@ def attack(
             if not detection_mode:
                 from .rich_output import print_error
 
-                print_error(
-                    "Try Refreshing Your Browser If You Haven't Gotten A Shell"
-                )
+                print_error("Try Refreshing Your Browser If You Haven't Gotten A Shell")
 
         return response
 
