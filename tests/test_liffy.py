@@ -1,4 +1,4 @@
-from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal
+from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal, NullByte
 from core.utils import colors
 
 def test_data(args):
@@ -50,3 +50,8 @@ def test_directory_traversal(args):
     print(colors("[~] Testing for directory traversal", 93))
     dt = DirTraversal.dirTraversal(args, True)
     dt.execute_dirTraversal()
+
+def test_null_byte(args):
+    print(colors("[~] Testing for Null Byte Poisoning", 93))
+    nb = NullByte.NullByte(args)
+    nb.execute_null_byte()

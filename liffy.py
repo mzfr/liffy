@@ -20,6 +20,7 @@ from tests.test_liffy import (
     test_ssh,
     test_filter,
     test_directory_traversal,
+    test_null_byte,
 )
 
 
@@ -156,6 +157,8 @@ def main():
         tasks.append(test_filter)
     if args.directorytraverse:
         tasks.append(test_directory_traversal)
+    if args.null_byte:
+        tasks.append(test_null_byte)
 
     if not tasks:
         print(colors("[!] Please select at least one technique to test", 91))
