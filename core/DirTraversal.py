@@ -2,6 +2,7 @@ from .utils import attack, colors
 
 from .Detection import Detection
 
+
 class dirTraversal:
     def __init__(self, args, dt):
         self.target = args.url
@@ -19,7 +20,7 @@ class dirTraversal:
             return
 
         print(colors("[~] Testing for Directory Traversal", 93))
-        with open('payload_wordlists/directory_traversal_list.txt', 'r') as payloadfile:
+        with open("payload_wordlists/directory_traversal_list.txt", "r") as payloadfile:
             payloads = payloadfile.readlines()
             for payload in payloads:
                 attack(self.target, payload[:-1], dt=self.dt)

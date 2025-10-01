@@ -97,11 +97,7 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "-t",
-        "--threads",
-        help="number of threads to use",
-        default=5,
-        type=int
+        "-t", "--threads", help="number of threads to use", default=5, type=int
     )
     parser.add_argument(
         "--detection",
@@ -116,6 +112,11 @@ def main():
     parser.add_argument(
         "--zip",
         help="Test for ZIP wrapper exploitation",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--encoding",
+        help="Use advanced encoding/bypass techniques",
         action="store_true",
     )
 
@@ -175,7 +176,6 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
         for task in tasks:
             executor.submit(task, args)
-
 
 
 if __name__ == "__main__":

