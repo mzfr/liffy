@@ -21,6 +21,7 @@ from tests.test_liffy import (
     test_filter,
     test_directory_traversal,
     test_null_byte,
+    test_zip_wrapper,
 )
 
 
@@ -112,6 +113,11 @@ def main():
         help="Test for Null Byte Poisoning",
         action="store_true",
     )
+    parser.add_argument(
+        "--zip",
+        help="Test for ZIP wrapper exploitation",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -159,6 +165,8 @@ def main():
         tasks.append(test_directory_traversal)
     if args.null_byte:
         tasks.append(test_null_byte)
+    if args.zip:
+        tasks.append(test_zip_wrapper)
 
     if not tasks:
         print(colors("[!] Please select at least one technique to test", 91))

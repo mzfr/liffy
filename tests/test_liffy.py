@@ -1,4 +1,4 @@
-from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal, NullByte
+from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal, NullByte, ZipWrapper
 from core.utils import colors
 
 def test_data(args):
@@ -55,3 +55,8 @@ def test_null_byte(args):
     print(colors("[~] Testing for Null Byte Poisoning", 93))
     nb = NullByte.NullByte(args)
     nb.execute_null_byte()
+
+def test_zip_wrapper(args):
+    print(colors("[~] Testing with ZIP wrapper", 93))
+    zw = ZipWrapper.ZipWrapper(args)
+    zw.execute_zip_wrapper()
