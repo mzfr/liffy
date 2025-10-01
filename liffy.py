@@ -178,12 +178,12 @@ def main():
     print_banner()
 
     if not args.url:
-        print_error("[!] URL is required")
+        print_error("URL is required")
         sys.exit(1)
 
     parsed = urllib.parse.urlsplit(args.url)
     if not parsed.query:
-        print_error("[!] No GET parameter Provided")
+        print_error("No GET parameter Provided")
 
     pre_run_tasks = {
         ping: "Checking Target: {0}".format(parsed.netloc),
@@ -199,10 +199,10 @@ def main():
             try:
                 result = future.result()
                 if not result:
-                    print_error("[!] Target irresponsive")
+                    print_error("Target irresponsive")
                     sys.exit(1)
                 else:
-                    print_success("[+] Target looks alive")
+                    print_success("Target looks alive")
             except Exception as exc:
                 print(f"{pre_run_tasks[task]} generated an exception: {exc}")
 
@@ -229,7 +229,7 @@ def main():
         tasks.append(test_zip_wrapper)
 
     if not tasks:
-        print_error("[!] Please select at least one technique to test")
+        print_error("Please select at least one technique to test")
         sys.exit(0)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:

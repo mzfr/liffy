@@ -212,7 +212,7 @@ def attack(
         if response.status_code != 200:
             from .rich_output import print_error
 
-            print_error("[!] Unexpected HTTP Response")
+            print_error("Unexpected HTTP Response")
             sys.exit(1)
         if not relative:
             if method.upper() == "POST":
@@ -235,7 +235,7 @@ def attack(
                 if not detection_mode:
                     from .rich_output import print_error
 
-                    print_error("[!] Unexpected HTTP Response")
+                    print_error("Unexpected HTTP Response")
             else:
                 if not detection_mode:
                     from .rich_output import print_error
@@ -274,12 +274,12 @@ def attack(
                     if r.status_code != 200:
                         from .rich_output import print_error
 
-                        print_error("[!] Unexpected HTTP Response")
+                        print_error("Unexpected HTTP Response")
             if not detection_mode:
                 from .rich_output import print_error
 
                 print_error(
-                    "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell"
+                    "Try Refreshing Your Browser If You Haven't Gotten A Shell"
                 )
 
         return response
@@ -287,6 +287,6 @@ def attack(
     except Exception as e:
         from .rich_output import print_error
 
-        print_error("[!] HTTP Error")
+        print_error("HTTP Error")
         print_error(str(e))
         sys.exit(1)
