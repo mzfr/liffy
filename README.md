@@ -19,6 +19,8 @@ A powerful Python tool for Local File Inclusion (LFI) exploitation with advanced
 
 Liffy v2.0 is the significantly enhanced version of [liffy](https://github.com/hvqzao/liffy) which was originally created by [rotlogix/liffy](https://github.com/rotlogix/liffy). This version includes modern features like Rich terminal output, YAML configuration, enhanced threading, and multiple advanced exploitation techniques.
 
+Lot of new changes were vibe coded using claude.
+
 ## Table of Contents
 
 - [Features](#features)
