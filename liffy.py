@@ -16,7 +16,9 @@ from core.rich_output import (
     rich_print,
     print_error,
     print_success,
+    _config,
 )
+from core.ThreadManager import ThreadManager
 from tests.test_liffy import (
     test_data,
     test_input,
@@ -237,9 +239,14 @@ def main():
         print_error("Please select at least one technique to test")
         sys.exit(0)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
-        for task in tasks:
-            executor.submit(task, args)
+    # Create enhanced thread manager
+    max_workers = getattr(args, "threads", _config.get("max_threads", 5))
+    rate_limit = _config.get("rate_limit_delay", 0.1)
+
+    thread_manager = ThreadManager(max_workers=max_workers, rate_limit_delay=rate_limit)
+
+    # Execute all tasks with enhanced monitoring
+    thread_manager.execute_tasks(tasks, [args] * len(tasks))
 
 
 if __name__ == "__main__":
