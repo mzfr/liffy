@@ -9,5 +9,6 @@ def args():
             self.cookies = None
             self.relative = False
             self.location = None
+            self.detection = False
 
     return Args()

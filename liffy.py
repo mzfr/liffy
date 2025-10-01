@@ -101,6 +101,16 @@ def main():
         default=5,
         type=int
     )
+    parser.add_argument(
+        "--detection",
+        help="Only perform LFI detection, without attempting to get a shell",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--null-byte",
+        help="Test for Null Byte Poisoning",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 

