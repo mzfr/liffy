@@ -4,12 +4,23 @@ import argparse
 import os
 import signal
 import sys
+import concurrent.futures
 import urllib.parse
 
 from pyfiglet import figlet_format
 
 from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal
 from core.utils import colors
+from tests.test_liffy import (
+    test_data,
+    test_input,
+    test_expect,
+    test_proc,
+    test_access,
+    test_ssh,
+    test_filter,
+    test_directory_traversal,
+)
 
 
 def ping(hostname):
@@ -83,78 +94,67 @@ def main():
         help="Test for Directory Traversal",
         action="store_true",
     )
+    parser.add_argument(
+        "-t",
+        "--threads",
+        help="number of threads to use",
+        default=5,
+        type=int
+    )
 
     args = parser.parse_args()
 
-    url = args.url
-    nostager = args.nostager
-    relative = args.relative
-    cookies = args.cookies
-
-    parsed = urllib.parse.urlsplit(url)
-
-    print(colors("[~] Checking Target: {0}".format(parsed.netloc), 93))
-
-    # if ping(parsed.netloc):
-    #     print(colors("[+] Target looks alive ", 92))
-    # else:
-    #     print(colors("[!] Target irresponsive ", 91))
-    #     sys.exit(1)
-
+    parsed = urllib.parse.urlsplit(args.url)
     if not parsed.query:
         print(colors("[!] No GET parameter Provided ", 91))
 
-    # TODO: Find a better way to do these checks
+    pre_run_tasks = {
+        ping: "Checking Target: {0}".format(parsed.netloc),
+    }
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(pre_run_tasks)
+    ) as executor:
+        future_to_task = {
+            executor.submit(task, parsed.netloc): task for task in pre_run_tasks
+        }
+        for future in concurrent.futures.as_completed(future_to_task):
+            task = future_to_task[future]
+            try:
+                result = future.result()
+                if not result:
+                    print(colors("[!] Target irresponsive ", 91))
+                    sys.exit(1)
+                else:
+                    print(colors("[+] Target looks alive ", 92))
+            except Exception as exc:
+                print(f"{pre_run_tasks[task]} generated an exception: {exc}")
+
+    tasks = []
     if args.data:
-        print(colors("[~] Testing with data:// ", 93))
-        d = data.Data(url, nostager, cookies)
-        d.execute_data()
-    elif args.input:
-        print(colors("[~] Testing with input:// ", 93))
-        i = Input.Input(url, nostager, cookies)
-        i.execute_input()
-    elif args.expect:
-        print(colors("[~] Testing with expect:// ", 93))
-        e = Expect.Expect(url, nostager, cookies)
-        e.execute_expect()
-    elif args.proc:
-        print(colors("[~] /proc/self/environ Technique Selected!", 93))
-        i = proc.Environ(url, nostager, relative, cookies)
-        i.execute_environ()
-    elif args.access:
-        print(colors("[~] Testing for Apache access.log poisoning", 93))
-        if not args.location:
-            print(colors("[~] Log Location Not Provided! Using Default", 93))
-            l = "/var/log/apache2/access.log"
-        else:
-            l = args.location
-        a = accesslog.Logs(url, l, nostager, relative, cookies)
-        a.execute_logs()
-    elif args.ssh:
-        print(colors("[~] Testing for SSH log poisoning ", 93))
-        if not args.location:
-            print(colors("[~] Log Location Not Provided! Using Default", 93))
-            l = "/var/log/auth.log"
-        else:
-            l = args.location
-        a = sshlog.SSHLogs(url, l, relative, cookies)
-        a.execute_ssh()
-    elif args.filter:
-        print(colors("[~] Testing with expect://", 93))
-        f = Filter.Filter(url, cookies)
-        f.execute_filter()
-    elif args.directorytraverse:
-        print(colors("[~] Testing for directory traversal", 93))
-        filename = input(
-            colors(
-                "[*] Please give a payload file for testing Directory Traversl: ", 91
-            )
-        )
-        dt = DirTraversal.dirTraversal(url, filename, True)
-        dt.execute_dirTraversal()
-    else:
-        print(colors("[!] Please select atleast one technique to test", 91))
+        tasks.append(test_data)
+    if args.input:
+        tasks.append(test_input)
+    if args.expect:
+        tasks.append(test_expect)
+    if args.proc:
+        tasks.append(test_proc)
+    if args.access:
+        tasks.append(test_access)
+    if args.ssh:
+        tasks.append(test_ssh)
+    if args.filter:
+        tasks.append(test_filter)
+    if args.directorytraverse:
+        tasks.append(test_directory_traversal)
+
+    if not tasks:
+        print(colors("[!] Please select at least one technique to test", 91))
         sys.exit(0)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
+        for task in tasks:
+            executor.submit(task, args)
+
 
 
 if __name__ == "__main__":
