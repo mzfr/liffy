@@ -1,5 +1,5 @@
 from .Detection import Detection
-from .utils import attack, colors, cook
+from .utils import attack, colors, cook, parse_headers, parse_post_data
 from .Encoding import EncodingBypass
 
 
@@ -9,16 +9,23 @@ class NullByte:
         self.cookies = args.cookies
         self.detection = args.detection
         self.use_encoding = getattr(args, "encoding", False)
+        self.method = getattr(args, "method", "GET")
+        self.custom_headers = parse_headers(getattr(args, "headers", None))
+        self.post_data = parse_post_data(getattr(args, "data", None))
 
     def attack(self, payload):
         payload = f"{payload}%00"
-        if self.cookies:
-            cookies = cook(self.cookies)
-            response = attack(
-                self.target, payload, cookies=cookies, detection_mode=self.detection
-            )
-        else:
-            response = attack(self.target, payload, detection_mode=self.detection)
+        cookies = cook(self.cookies) if self.cookies else None
+
+        response = attack(
+            self.target,
+            payload,
+            cookies=cookies,
+            detection_mode=self.detection,
+            method=self.method,
+            post_data=self.post_data,
+            custom_headers=self.custom_headers,
+        )
         return response
 
     def execute_null_byte(self):
@@ -28,9 +35,13 @@ class NullByte:
             return
 
         print(colors("[~] Testing for Null Byte Poisoning", 93))
+        print(colors(f"[~] Using HTTP method: {self.method}", 94))
 
         if self.use_encoding:
             print(colors("[~] Advanced encoding bypasses enabled", 94))
+
+        if self.custom_headers:
+            print(colors(f"[~] Custom headers: {self.custom_headers}", 94))
 
         with open("payload_wordlists/directory_traversal_list.txt", "r") as payloadfile:
             payloads = payloadfile.readlines()

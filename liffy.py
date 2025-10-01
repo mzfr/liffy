@@ -119,6 +119,20 @@ def main():
         help="Use advanced encoding/bypass techniques",
         action="store_true",
     )
+    parser.add_argument(
+        "--method",
+        help="HTTP method to use (GET/POST)",
+        default="GET",
+        choices=["GET", "POST"],
+    )
+    parser.add_argument(
+        "--data",
+        help="POST data (format: key=value&key2=value2)",
+    )
+    parser.add_argument(
+        "--headers",
+        help="Custom headers (format: Header1:Value1,Header2:Value2)",
+    )
 
     args = parser.parse_args()
 
