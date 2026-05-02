@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import json
 import signal
 import sys
 import concurrent.futures
@@ -20,6 +21,7 @@ from core.rich_output import (
     _config,
 )
 from core.ThreadManager import ThreadManager
+from core.utils import configure_http_options, configure_runtime_options, HTTP_OPTIONS
 from tests.test_liffy import (
     test_data,
     test_input,
@@ -36,12 +38,21 @@ from tests.test_liffy import (
 
 def ping(url):
     """Check whether the target HTTP service is reachable."""
+    request_kwargs = {"timeout": HTTP_OPTIONS["timeout"]}
+    if HTTP_OPTIONS.get("proxy"):
+        request_kwargs["proxies"] = {
+            "http": HTTP_OPTIONS["proxy"],
+            "https": HTTP_OPTIONS["proxy"],
+        }
+    if HTTP_OPTIONS.get("verify_tls"):
+        request_kwargs["verify"] = True
+
     try:
-        response = requests.head(url, allow_redirects=True, timeout=5)
+        response = requests.head(url, allow_redirects=True, **request_kwargs)
         return True
     except requests.RequestException:
         try:
-            response = requests.get(url, stream=True, timeout=5)
+            response = requests.get(url, stream=True, **request_kwargs)
             response.close()
             return True
         except requests.RequestException:
@@ -145,6 +156,36 @@ def main():
         "--headers",
         help="Custom headers (format: Header1:Value1,Header2:Value2)",
     )
+    parser.add_argument("--lhost", help="callback host for staged payloads")
+    parser.add_argument("--lport", help="callback port for staged payloads")
+    parser.add_argument("--read-file", help="file path to read with filter://")
+    parser.add_argument(
+        "-y",
+        "--yes",
+        help="use defaults for prompts and run non-interactively",
+        action="store_true",
+    )
+    parser.add_argument("--timeout", type=float, help="HTTP request timeout in seconds")
+    parser.add_argument("--proxy", help="HTTP(S) proxy URL")
+    parser.add_argument(
+        "--verify-tls",
+        help="verify TLS certificates instead of using insecure requests",
+        action="store_true",
+    )
+    parser.add_argument("--user-agent", help="custom User-Agent header")
+    parser.add_argument("--delay", type=float, help="delay between requests in seconds")
+    parser.add_argument("--retries", type=int, help="HTTP retries per request")
+    parser.add_argument(
+        "--json",
+        help="print a JSON run summary",
+        action="store_true",
+    )
+    parser.add_argument("--output", help="write JSON run summary to a file")
+    parser.add_argument(
+        "--quiet",
+        help="suppress normal terminal output",
+        action="store_true",
+    )
     parser.add_argument(
         "--no-color",
         help="Disable colored output",
@@ -177,7 +218,13 @@ def main():
 
     # Load configuration and apply CLI overrides
     load_config()
-    configure_output(disable_colors=args.no_color, disable_banner=args.no_banner)
+    configure_output(
+        disable_colors=args.no_color,
+        disable_banner=args.no_banner,
+        quiet=args.quiet or (args.json and not args.output),
+    )
+    configure_http_options(args, _config)
+    configure_runtime_options(args)
 
     # Show banner after configuration is loaded
     print_banner()
@@ -244,7 +291,22 @@ def main():
     thread_manager = ThreadManager(max_workers=max_workers, rate_limit_delay=rate_limit)
 
     # Execute each selected technique once with the parsed CLI arguments.
-    thread_manager.execute_tasks(tasks, [args])
+    results = thread_manager.execute_tasks(tasks, [args])
+
+    if args.json or args.output:
+        summary = {
+            "target": args.url,
+            "techniques": [task.__name__ for task in tasks],
+            "completed": thread_manager.completed_tasks,
+            "failed": thread_manager.failed_tasks,
+            "result_count": len(results),
+        }
+        rendered = json.dumps(summary, indent=2)
+        if args.output:
+            with open(args.output, "w") as output_file:
+                output_file.write(rendered + "\n")
+        if args.json:
+            print(rendered)
 
 
 if __name__ == "__main__":

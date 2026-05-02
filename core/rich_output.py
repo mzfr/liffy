@@ -11,7 +11,7 @@ import yaml
 console = Console()
 
 # Configuration for output control
-_config = {"disable_colors": False, "disable_banner": False}
+_config = {"disable_colors": False, "disable_banner": False, "quiet": False}
 
 
 def load_config():
@@ -35,10 +35,15 @@ def create_default_config():
     default_config = {
         "disable_colors": False,
         "disable_banner": False,
+        "quiet": False,
         "rate_limit_delay": 0.1,
         "user_agent_rotation": True,
         "max_threads": 5,
         "detection_timeout": 30,
+        "request_timeout": 15,
+        "proxy": None,
+        "verify_tls": False,
+        "retries": 0,
     }
 
     with open(config_file, "w") as f:
@@ -49,6 +54,8 @@ def create_default_config():
 
 def rich_print(text, style=None, end="\n"):
     """Print text with Rich formatting, respecting color settings"""
+    if _config.get("quiet", False):
+        return
     if _config.get("disable_colors", False):
         # Strip any markup and print plain text
         console.print(text, style=None, highlight=False, markup=False, end=end)
@@ -156,9 +163,11 @@ def print_payload_test(payload, encoding_variants=None):
     rich_print(f"[blue]Payload:[/blue] {payload}")
 
 
-def configure_output(disable_colors=False, disable_banner=False):
+def configure_output(disable_colors=False, disable_banner=False, quiet=False):
     """Configure output settings - CLI args override config file settings"""
     if disable_colors:
         _config["disable_colors"] = True
     if disable_banner:
         _config["disable_banner"] = True
+    if quiet:
+        _config["quiet"] = True
