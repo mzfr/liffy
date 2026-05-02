@@ -61,18 +61,21 @@ def print_banner():
     if _config.get("disable_banner", False):
         return
 
-    banner_text = """
-    ╦  ┬┌─┐┌─┐┬ ┬  ┬  ┬┌─┐┌─┐
-    ║  │├┤ ├┤ └┬┘  └┐┌┘┌─┘┌─┘
-    ╩═╝┴└  └   ┴    └┘ └─┘└─┘
-    """
+    banner_text = r""" _     _  __  __
+| |   (_)/ _|/ _|_   _
+| |   | | |_| |_| | | |
+| |___| |  _|  _| |_| |
+|_____|_|_| |_|  \__, |
+                  |___/"""
 
     if not _config.get("disable_colors", False):
         rich_print(
             Panel(
                 Text(banner_text, style="bold green"),
-                title="[bold cyan]Liffy v2.0 - LFI Exploitation Tool[/bold cyan]",
+                title="[bold cyan]Liffy v2.0[/bold cyan]",
+                subtitle="[cyan]LFI Exploitation Tool[/cyan]",
                 border_style="bright_blue",
+                expand=False,
             )
         )
     else:
