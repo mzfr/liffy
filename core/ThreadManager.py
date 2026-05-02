@@ -22,7 +22,7 @@ class ThreadManager:
     def execute_tasks(self, tasks, task_args_list):
         """Execute a list of tasks with enhanced monitoring"""
         self.start_time = time.time()
-        total_tasks = len(tasks) * len(task_args_list) if task_args_list else len(tasks)
+        total_tasks = len(tasks)
 
         print_info(f"Starting {total_tasks} tasks with {self.max_workers} workers")
 
@@ -33,13 +33,14 @@ class ThreadManager:
             future_to_task = {}
 
             if task_args_list:
-                # Multiple args for each task
-                for task in tasks:
-                    for args in task_args_list:
-                        future = executor.submit(
-                            self._execute_with_monitoring, task, args
-                        )
-                        future_to_task[future] = (task, args)
+                if len(task_args_list) == 1:
+                    task_args_list = task_args_list * len(tasks)
+                elif len(task_args_list) != len(tasks):
+                    raise ValueError("task_args_list must contain one item or match tasks")
+
+                for task, args in zip(tasks, task_args_list):
+                    future = executor.submit(self._execute_with_monitoring, task, args)
+                    future_to_task[future] = (task, args)
             else:
                 # Single execution for each task
                 for task in tasks:

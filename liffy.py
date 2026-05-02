@@ -243,8 +243,8 @@ def main():
 
     thread_manager = ThreadManager(max_workers=max_workers, rate_limit_delay=rate_limit)
 
-    # Execute all tasks with enhanced monitoring
-    thread_manager.execute_tasks(tasks, [args] * len(tasks))
+    # Execute each selected technique once with the parsed CLI arguments.
+    thread_manager.execute_tasks(tasks, [args])
 
 
 if __name__ == "__main__":
