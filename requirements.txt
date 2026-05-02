@@ -1,6 +1,0 @@
-requests
-python-daemon
-pyfiglet
-rich
-pytest
-pyyaml

@@ -1,0 +1,21 @@
+[project]
+name = "liffy"
+version = "2.0.0"
+description = "Advanced LFI exploitation tool"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-only"
+dependencies = [
+    "python-daemon==3.1.2",
+    "PyYAML==6.0.3",
+    "requests==2.33.1",
+    "rich==15.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.0.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

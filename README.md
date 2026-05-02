@@ -81,8 +81,8 @@ cd liffy
 # Create virtual environment with uv
 uv venv
 
-# Install dependencies
-uv pip install -r requirements.txt
+# Install dependencies from pyproject.toml
+uv sync
 
 # Run liffy
 uv run python liffy.py --help
@@ -161,6 +161,8 @@ disable_banner: false
 default_method: GET
 user_agent_rotation: true
 ```
+
+Set `disable_banner: true` to hide the startup banner/logo by default. CLI flags still override config values, so you can also use `--no-banner` or `--no-color` for one-off runs.
 
 ### Environment Variables
 
