@@ -1,7 +1,7 @@
 import subprocess
 from os.path import abspath, dirname, join
 
-from .utils import listener, attack, colors, cook, msf_payload
+from .utils import listener, attack, colors, cook, msf_payload, prompt_input
 
 from .Detection import Detection
 
@@ -56,7 +56,7 @@ class Input:
             print(colors("[!] Process Error", 91))
             print(e)
 
-        input(
+        prompt_input(
             colors(
                 "[?] Press Enter To Continue When Your netcat listener is Running ...",
                 94,

