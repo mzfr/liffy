@@ -33,6 +33,7 @@ from tests.test_liffy import (
     test_directory_traversal,
     test_null_byte,
     test_zip_wrapper,
+    test_wrapper_scan,
 )
 
 
@@ -131,6 +132,17 @@ def main():
         "--zip",
         help="Test for ZIP wrapper exploitation",
         action="store_true",
+    )
+    parser.add_argument(
+        "--wrappers",
+        "--wrapper",
+        dest="wrappers",
+        help="Detect common LFI stream wrappers",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--wrapper-list",
+        help="Path to custom wrapper probe payload list",
     )
     parser.add_argument(
         "--encoding",
@@ -279,6 +291,8 @@ def main():
         tasks.append(test_null_byte)
     if args.zip:
         tasks.append(test_zip_wrapper)
+    if args.wrappers:
+        tasks.append(test_wrapper_scan)
 
     if not tasks:
         print_error("Please select at least one technique to test")

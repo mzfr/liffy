@@ -9,6 +9,7 @@ from core import (
     DirTraversal,
     NullByte,
     ZipWrapper,
+    WrapperScan,
 )
 from core.utils import colors
 
@@ -81,3 +82,9 @@ def test_zip_wrapper(args):
     print(colors("[~] Testing with ZIP wrapper", 93))
     zw = ZipWrapper.ZipWrapper(args)
     zw.execute_zip_wrapper()
+
+
+def test_wrapper_scan(args):
+    print(colors("[~] Testing common wrappers", 93))
+    ws = WrapperScan.WrapperScan(args)
+    ws.execute_wrapper_scan()

@@ -45,6 +45,7 @@ Liffy v2.0 is the significantly enhanced version of [liffy](https://github.com/h
 - **Linux auth.log SSH poisoning** - SSH log exploitation
 - **Null Byte Poisoning** - Legacy PHP null byte attacks
 - **ZIP wrapper exploitation** - ZIP file inclusion attacks
+- **Wrapper detection** - Safe probes for common LFI stream wrappers
 
 ### Advanced Features
 
@@ -124,6 +125,9 @@ Core Techniques:
   -dt, --directorytraverse  Test for Directory Traversal
   --null-byte           Test for Null Byte Poisoning
   --zip                 Test for ZIP wrapper exploitation
+  --wrappers, --wrapper Detect common LFI stream wrappers
+  --wrapper-list WRAPPER_LIST
+                        Path to custom wrapper probe payload list
 
 Advanced Options:
   --encoding            Use advanced encoding/bypass techniques
@@ -332,11 +336,33 @@ uv run python liffy.py "http://example.com/page.php?file=" --null-byte
 uv run python liffy.py "http://example.com/page.php?file=" --zip
 ```
 
+#### Common wrapper detection
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --wrappers
+```
+
+Wrapper detection uses safe default probes for `file://`, `php://filter`, `data://`, `php://temp`, `php://memory`, and related wrappers. `zip://`, `phar://`, and `glob://` are treated as informational/conditional because they usually require target-side files or sink behavior that exposes listings.
+
+You can provide a custom wrapper payload list. If `--wrapper-list` is omitted, liffy falls back to the built-in probes:
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --wrapper \
+  --wrapper-list payload_wordlists/wrappers.txt
+```
+
+Each non-empty line can be either a raw payload or `name=payload`:
+
+```text
+php-filter-passwd=php://filter/read=convert.base64-encode/resource=/etc/passwd
+file-winini=file:///c:/windows/win.ini
+```
+
 #### Comprehensive scan with all techniques
 
 ```bash
 uv run python liffy.py "http://example.com/page.php?file=" \
-  -d -i -e -f -p -a --ssh -dt --null-byte --zip \
+  -d -i -e -f -p -a --ssh -dt --null-byte --zip --wrappers \
   --encoding --waf-bypass --detection
 ```
 
