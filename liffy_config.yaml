@@ -1,6 +1,12 @@
 detection_timeout: 30
 disable_banner: false
 disable_colors: false
+quiet: false
 max_threads: 5
 rate_limit_delay: 0.1
+request_timeout: 15
+proxy: null
+verify_tls: false
+retries: 0
+user_agent: null
 user_agent_rotation: true
