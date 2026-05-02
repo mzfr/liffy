@@ -193,3 +193,5 @@ class WrapperScan:
                     print(colors(f"    Notes: {', '.join(finding['notes'])}", 94))
         else:
             print(colors("[-] No usable wrappers detected.", 91))
+
+        return findings
