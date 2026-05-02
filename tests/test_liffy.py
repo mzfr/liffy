@@ -10,6 +10,8 @@ from core import (
     NullByte,
     ZipWrapper,
     WrapperScan,
+    OOBScan,
+    BlindScan,
 )
 from core.utils import colors
 
@@ -88,3 +90,15 @@ def test_wrapper_scan(args):
     print(colors("[~] Testing common wrappers", 93))
     ws = WrapperScan.WrapperScan(args)
     ws.execute_wrapper_scan()
+
+
+def test_oob_scan(args):
+    print(colors("[~] Testing OOB callbacks", 93))
+    os = OOBScan.OOBScan(args)
+    os.execute_oob_scan()
+
+
+def test_blind_scan(args):
+    print(colors("[~] Testing blind LFI", 93))
+    bs = BlindScan.BlindScan(args)
+    bs.execute_blind_scan()

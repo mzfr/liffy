@@ -34,6 +34,8 @@ from tests.test_liffy import (
     test_null_byte,
     test_zip_wrapper,
     test_wrapper_scan,
+    test_oob_scan,
+    test_blind_scan,
 )
 
 
@@ -63,6 +65,18 @@ def ping(url):
 def signal_handler(signal, frame):
     print_error("\n\nYou pressed Ctrl+C!")
     sys.exit(0)
+
+
+def apply_auto_scan(args):
+    if not args.auto:
+        return
+
+    args.detection = True
+    args.directorytraverse = True
+    args.wrappers = True
+    args.blind = True
+    if args.oob_url:
+        args.oob = True
 
 
 def main():
@@ -143,6 +157,23 @@ def main():
     parser.add_argument(
         "--wrapper-list",
         help="Path to custom wrapper probe payload list",
+    )
+    parser.add_argument(
+        "--oob",
+        help="Send out-of-band callback probes",
+        action="store_true",
+    )
+    parser.add_argument("--oob-url", help="OOB callback base URL")
+    parser.add_argument(
+        "--blind",
+        help="Run blind LFI response-difference checks",
+        action="store_true",
+    )
+    parser.add_argument("--blind-list", help="Path to custom blind LFI probe list")
+    parser.add_argument(
+        "--auto",
+        help="Run a safe automatic scan plan",
+        action="store_true",
     )
     parser.add_argument(
         "--encoding",
@@ -270,6 +301,8 @@ def main():
             except Exception as exc:
                 print(f"{pre_run_tasks[task]} generated an exception: {exc}")
 
+    apply_auto_scan(args)
+
     tasks = []
     if args.data:
         tasks.append(test_data)
@@ -293,6 +326,10 @@ def main():
         tasks.append(test_zip_wrapper)
     if args.wrappers:
         tasks.append(test_wrapper_scan)
+    if args.oob:
+        tasks.append(test_oob_scan)
+    if args.blind:
+        tasks.append(test_blind_scan)
 
     if not tasks:
         print_error("Please select at least one technique to test")

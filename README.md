@@ -46,6 +46,9 @@ Liffy v2.0 is the significantly enhanced version of [liffy](https://github.com/h
 - **Null Byte Poisoning** - Legacy PHP null byte attacks
 - **ZIP wrapper exploitation** - ZIP file inclusion attacks
 - **Wrapper detection** - Safe probes for common LFI stream wrappers
+- **Out-of-band probes** - Callback payloads for blind wrapper/SSRF-style behavior
+- **Blind LFI checks** - Response-difference probes when file contents are not reflected
+- **Auto scan mode** - Safe detection-first scan plan across traversal, wrappers, and blind checks
 
 ### Advanced Features
 
@@ -107,6 +110,7 @@ usage: liffy.py [-h] [-d] [-i] [-e] [-f] [-p] [-a] [-ns] [-r] [--ssh]
                 [--headers HEADERS] [--lhost LHOST] [--lport LPORT]
                 [--read-file READ_FILE] [-y] [--timeout TIMEOUT]
                 [--proxy PROXY] [--verify-tls] [--user-agent USER_AGENT]
+                [--oob] [--oob-url OOB_URL] [--blind] [--auto]
                 [--delay DELAY] [--retries RETRIES] [--json] [--output OUTPUT]
                 [--quiet] [--no-color] [--no-banner] [--config]
                 [url]
@@ -128,6 +132,12 @@ Core Techniques:
   --wrappers, --wrapper Detect common LFI stream wrappers
   --wrapper-list WRAPPER_LIST
                         Path to custom wrapper probe payload list
+  --oob                 Send out-of-band callback probes
+  --oob-url OOB_URL     OOB callback base URL
+  --blind               Run blind LFI response-difference checks
+  --blind-list BLIND_LIST
+                        Path to custom blind LFI probe list
+  --auto                Run a safe automatic scan plan
 
 Advanced Options:
   --encoding            Use advanced encoding/bypass techniques
@@ -358,11 +368,51 @@ php-filter-passwd=php://filter/read=convert.base64-encode/resource=/etc/passwd
 file-winini=file:///c:/windows/win.ini
 ```
 
+#### Out-of-band callback probes
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --oob \
+  --oob-url "https://example.oast.site"
+```
+
+Use this with an HTTP/DNS callback listener. Liffy sends URL-wrapper style payloads and you verify whether the target calls back.
+
+#### Blind LFI checks
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --blind
+```
+
+Blind checks compare existing-file probes against random missing-file baselines and report status, length, or timing differences when content is not directly reflected.
+
+You can provide a custom blind probe list. If `--blind-list` is omitted or empty, liffy uses built-in probes:
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --blind \
+  --blind-list payload_wordlists/blind_lfi.txt
+```
+
+Each non-empty line can be either a raw payload or `name=payload`:
+
+```text
+linux-passwd=/etc/passwd
+proc-environ=/proc/self/environ
+laravel-env=.env
+```
+
+#### Safe automatic scan
+
+```bash
+uv run python liffy.py "http://example.com/page.php?file=" --auto
+```
+
+`--auto` enables detection-only directory traversal, wrapper checks, and blind checks. If `--oob-url` is also provided, it includes OOB probes.
+
 #### Comprehensive scan with all techniques
 
 ```bash
 uv run python liffy.py "http://example.com/page.php?file=" \
-  -d -i -e -f -p -a --ssh -dt --null-byte --zip --wrappers \
+  -d -i -e -f -p -a --ssh -dt --null-byte --zip --wrappers --blind \
   --encoding --waf-bypass --detection
 ```
 
