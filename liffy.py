@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
 import argparse
-import os
 import signal
 import sys
 import concurrent.futures
 import urllib.parse
+
+import requests
 
 from core import Expect, Filter, Input, accesslog, data, proc, sshlog, DirTraversal
 from core.rich_output import (
@@ -33,21 +34,18 @@ from tests.test_liffy import (
 )
 
 
-def ping(hostname):
-    """Ping the host to check if it's up or down
-
-    Arguments:
-        hostname {str} -- hostname to ping
-
-    Returns:
-        bool -- Tell if host is up or not
-    """
-    resp = os.system("ping -c 1 -W2 " + hostname + " > /dev/null 2>&1")
-
-    if resp == 0:
+def ping(url):
+    """Check whether the target HTTP service is reachable."""
+    try:
+        response = requests.head(url, allow_redirects=True, timeout=5)
         return True
-    else:
-        return False
+    except requests.RequestException:
+        try:
+            response = requests.get(url, stream=True, timeout=5)
+            response.close()
+            return True
+        except requests.RequestException:
+            return False
 
 
 def signal_handler(signal, frame):
@@ -193,13 +191,13 @@ def main():
         print_error("No GET parameter Provided")
 
     pre_run_tasks = {
-        ping: "Checking Target: {0}".format(parsed.netloc),
+        ping: "Checking Target: {0}".format(args.url),
     }
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=len(pre_run_tasks)
     ) as executor:
         future_to_task = {
-            executor.submit(task, parsed.netloc): task for task in pre_run_tasks
+            executor.submit(task, args.url): task for task in pre_run_tasks
         }
         for future in concurrent.futures.as_completed(future_to_task):
             task = future_to_task[future]
